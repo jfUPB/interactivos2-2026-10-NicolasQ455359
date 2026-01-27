@@ -6,11 +6,15 @@
 ## Bitácora de aplicación 
 
 ACTIVIDAD 04
+
 Unidad 1 – Creación de una pieza de audio interactiva (Strudel)
-Obra: Arquitectura Sonora de Juego 🎮
+
+Obra: Arquitectura Sonora de Juego 
+
 Herramienta: Strudel
 
 1) Intención de la obra (concepto)
+   
 Esta pieza se diseñó como un sistema musical modular inspirado en música dinámica de videojuegos. En lugar de componer una sola canción lineal, se construyó un motor de audio donde cada instrumento conserva una identidad sonora fija (mismo timbre y rol), pero puede ejecutar múltiples partituras compatibles.
 La “interacción” ocurre en el acto de live coding: durante la performance se seleccionan y combinan partituras en vivo, lo que genera transiciones narrativas coherentes (exploración, tensión, combate y calma) sin romper la unidad estética del mundo sonoro.
 
@@ -31,6 +35,7 @@ Eventos: señales de peligro o acción (interrupciones / glitches).
 No cambia la paleta de instrumentos, cambian únicamente las partituras que cada instrumento ejecuta.
 
 3) Proceso paso a paso
+   
  Paso 1 – Base mínima: Drone (mundo sonoro)
  Código Paso 1
 ```js
@@ -189,3 +194,4 @@ stack(
 .gain(0.9)
 ```
 ## Bitácora de reflexión
+
