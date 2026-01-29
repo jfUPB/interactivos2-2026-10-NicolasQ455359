@@ -36,7 +36,7 @@ No cambia la paleta de instrumentos, cambian únicamente las partituras que cada
 
 3) Proceso paso a paso
    
- Paso 1 – Base mínima: Drone (mundo sonoro)
+ Paso 1 Base mínima: Drone
  Código Paso 1
 ```js
 setcpm(112/4)
@@ -49,10 +49,168 @@ note("c3 ~ g3 ~")
 ```
 <img width="1849" height="321" alt="image" src="https://github.com/user-attachments/assets/46426c00-a169-4a36-b5ae-bbf05ba12984" />
 
-El drone define el tono del mundo. Elegí triangle por su carácter suave, y filtro bajo para mantenerlo cálido y no agresivo.
+El drone define el tono. Elegí triangle por su carácter suave, y filtro bajo para mantenerlo cálido.
 
 
 
+
+
+Paso 2 Movimiento: añadir Kick
+
+ Paso 2
+```js
+setcpm(112/4)
+
+stack(
+  note("c3 ~ g3 ~")
+    .sound("triangle")
+    .gain(0.12)
+    .lpf(1000)
+    .room(0.7),
+
+  s("bd ~ ~ ~")
+    .bank("RolandTR909")
+    .gain(0.7)
+)
+.gain(0.9)
+```
+
+ El kick entra como señal de movimiento. Usé un patrón simple (bd ~ ~ ~) para no competir con la atmósfera.
+
+ Paso 3 Tensión rítmica: añadir Hats
+
+```js
+setcpm(112/4)
+
+stack(
+  note("c3 ~ g3 ~")
+    .sound("triangle")
+    .gain(0.12)
+    .lpf(1000)
+    .room(0.7),
+
+  s("bd ~ ~ ~")
+    .bank("RolandTR909")
+    .gain(0.7),
+
+  s("~ hh ~ hh")
+    .bank("RolandTR909")
+    .gain(0.35)
+    .lpf(7000)
+)
+.gain(0.9)
+```
+Los hats agregan una sensación de ‘alerta’. El filtro alto evita que suenen ásperos.
+
+Paso 4 Emoción: añadir Melodía
+
+```js
+setcpm(112/4)
+
+stack(
+  note("c3 ~ g3 ~")
+    .sound("triangle")
+    .gain(0.12)
+    .lpf(1000)
+    .room(0.7),
+
+  s("bd ~ ~ ~")
+    .bank("RolandTR909")
+    .gain(0.7),
+
+  s("~ hh ~ hh")
+    .bank("RolandTR909")
+    .gain(0.35)
+    .lpf(7000),
+
+  note("~ e4 ~ g4")
+    .sound("sine")
+    .gain(0.18)
+    .lpf(3500)
+    .room(0.5)
+)
+.gain(0.9)
+```
+
+ “La melodía da dirección emocional. Elegí sine para que sea clara pero suave, como un indicador narrativo.”
+
+Paso 5 añadir Eventos (glitch)
+
+```js
+setcpm(112/4)
+
+stack(
+  note("c3 ~ g3 ~")
+    .sound("triangle")
+    .gain(0.12)
+    .lpf(1000)
+    .room(0.7),
+
+  s("bd ~ ~ ~")
+    .bank("RolandTR909")
+    .gain(0.7),
+
+  s("~ hh ~ hh")
+    .bank("RolandTR909")
+    .gain(0.35)
+    .lpf(7000),
+
+  note("~ e4 ~ g4")
+    .sound("sine")
+    .gain(0.18)
+    .lpf(3500)
+    .room(0.5),
+
+  s("~ sd ~ ~")
+    .bank("RolandTR909")
+    .gain(0.4)
+    .speed("1.4")
+)
+.gain(0.9)
+```
+Los eventos funcionan como feedback del sistema: anuncian riesgo sin necesidad de subir todo el ritmo.
+
+Paso 6 – Sistema final: partituras por instrumento
+
+```js
+setcpm(112/4)
+
+// DRONE: 0–3
+let DRONE_SCORE = 0
+// KICK: 0–3
+let KICK_SCORE = 0
+// HATS: 0–3
+let HAT_SCORE = 0
+// MELODÍA: 0–3
+let MELODY_SCORE = 0
+// EVENTOS: 0–3
+let EVENT_SCORE = 0
+
+const droneScores = ["c3 ~ g3 ~","c3 ~ g3 bb3","c3 eb3 g3 ~","c3 g3 bb3 eb4"]
+const kickScores  = ["~ ~ ~ ~","bd ~ ~ ~","bd ~ bd ~","bd*4"]
+const hatScores   = ["~ ~ ~ ~","~ hh ~ hh","hh hh ~ hh","hh*8"]
+const melodyScores= ["~ ~ ~ ~","~ e4 ~ g4","g4 ~ f4 ~","<e4 g4 bb4>*2"]
+const eventScores = ["~ ~ ~ ~","~ sd ~ ~","sd ~ sd ~","sd(3,8)"]
+
+const DRONE =
+  note(droneScores[DRONE_SCORE]).sound("triangle").gain(0.12).lpf(1000).room(0.7)
+
+const KICK =
+  s(kickScores[KICK_SCORE]).bank("RolandTR909").gain(0.7)
+
+const HATS =
+  s(hatScores[HAT_SCORE]).bank("RolandTR909").gain(0.35).lpf(7000)
+
+const MELODY =
+  note(melodyScores[MELODY_SCORE]).sound("sine").gain(0.18).lpf(3500).room(0.5)
+
+const EVENTS =
+  s(eventScores[EVENT_SCORE]).bank("RolandTR909").gain(0.4).speed("1.4")
+
+stack(DRONE, KICK, HATS, MELODY, EVENTS).gain(0.9)
+```
+
+## Codigo completo: 
 ```js
 setcpm(112/4)
 
@@ -194,4 +352,5 @@ stack(
 .gain(0.9)
 ```
 ## Bitácora de reflexión
+
 
