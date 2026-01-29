@@ -353,4 +353,7 @@ stack(
 ```
 ## Bitácora de reflexión
 
+En el caso de estudio, Strudel genera un patrón musical que se convierte internamente en eventos temporales (haps). Un scheduler dispara estos eventos en el tiempo correcto y el motor de audio los reproduce. Paralelamente, el proyecto incluye un puente audiovisual que captura información de esos eventos (o del análisis del audio) y la guarda como estado compartido. El sketch de p5.js corre en un bucle por frames (draw()), lee ese estado en cada frame y lo traduce a parámetros visuales (tamaño, color, aparición de partículas, movimiento). Así, un evento musical en Strudel se convierte en una reacción visual verificable en p5.js.
+
+
 
