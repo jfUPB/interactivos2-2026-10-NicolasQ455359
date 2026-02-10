@@ -91,7 +91,7 @@ Las visuales responden con movimientos más amplios y cambios más notorios en p
 
 Se refuerza la relación causa–efecto entre sonido y visual, haciendo la experiencia más coherente e inmersiva.
 
- código
+### código
 ```js
 stack(
   s("bd*4").gain(1),
@@ -121,4 +121,5 @@ El caso de estudio demuestra cómo es posible lograr una sincronización efectiv
 
 
 ## Bitácora de reflexión
+
 
