@@ -42,7 +42,7 @@ El navegador forzaba el uso de HTTPS, lo que impedía acceder al servidor local.
 
 Solución: Se accedió explícitamente mediante http://localhost:4321.
 
-✅ Resultado
+ Resultado
 
 El caso de estudio quedó correctamente ejecutado, con Strudel funcionando en el navegador y los visuales en p5.js cargando a 60 FPS, confirmando que el entorno estaba correctamente configurado.
 
@@ -121,3 +121,4 @@ El caso de estudio demuestra cómo es posible lograr una sincronización efectiv
 
 
 ## Bitácora de reflexión
+
