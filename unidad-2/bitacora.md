@@ -46,7 +46,7 @@ Solución: Se accedió explícitamente mediante http://localhost:4321.
 
 El caso de estudio quedó correctamente ejecutado, con Strudel funcionando en el navegador y los visuales en p5.js cargando a 60 FPS, confirmando que el entorno estaba correctamente configurado.
 
-Actividad 02
+### Actividad 02
 
 Análisis de la sincronización audio–visual
 
@@ -72,7 +72,7 @@ El uso de un bucle de renderizado constante en p5.js (60 FPS) garantiza fluidez 
 
 Esta arquitectura permite que las visuales no dependan directamente del audio como señal sonora, sino de datos temporales derivados del audio, lo que hace el sistema más estable y controlable.
 
-Actividad 03
+### Actividad 03
 
 Modificación del caso de estudio
  Modificación realizada
@@ -121,6 +121,7 @@ El caso de estudio demuestra cómo es posible lograr una sincronización efectiv
 
 
 ## Bitácora de reflexión
+
 
 
 
