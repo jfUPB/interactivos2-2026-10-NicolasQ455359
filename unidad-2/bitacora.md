@@ -112,7 +112,7 @@ La visual visualesHouse.html corriendo a 60 FPS.
 
 La terminal con OSCBridge activo.
 
- Conclusión general
+### Conclusión general
 
 El caso de estudio demuestra cómo es posible lograr una sincronización efectiva entre audio y visuales utilizando protocolos de comunicación en tiempo real. La separación entre generación sonora y renderizado visual permite un sistema flexible, escalable y altamente reactivo, ideal para proyectos de arte digital e interacción audiovisual.
 
@@ -121,5 +121,6 @@ El caso de estudio demuestra cómo es posible lograr una sincronización efectiv
 
 
 ## Bitácora de reflexión
+
 
 
