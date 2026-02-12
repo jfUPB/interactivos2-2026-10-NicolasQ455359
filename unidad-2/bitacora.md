@@ -1360,7 +1360,14 @@ Codigo visuales
 
 ## Bitácora de reflexión
 
-<img width="844" height="291" alt="image" src="https://github.com/user-attachments/assets/5a2c1106-a897-4cdf-8661-66b39da1294a" />
+### caso de estudio
+
+<img width="824" height="521" alt="image" src="https://github.com/user-attachments/assets/3b29c615-ccff-4a19-be3f-5e3b0ee270c0" />
+
+### Obra con visuales
+
+<img width="856" height="303" alt="image" src="https://github.com/user-attachments/assets/dfb2a973-ecf0-47e1-94b7-2ba39f1708d0" />
+
 
 
 
