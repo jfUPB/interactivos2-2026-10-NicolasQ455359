@@ -26,10 +26,10 @@ index.html
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Platformer Toon + Open Stage Control</title>
 
-  <!-- p5 -->
+
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 
-  <!-- Tone.js (audio sin Strudel) -->
+
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
 
   <style>
@@ -1250,3 +1250,4 @@ class AudioEngine {
   }
 }
 ```
+
