@@ -53,7 +53,7 @@ Finalmente, el sonido se reproduce en el espacio.
   <img width="1200" height="630" alt="image" src="https://github.com/user-attachments/assets/5624b991-e8da-4758-a43e-9fa525164873" />
   Su trabajo es clave porque pone al público en el centro de la obra. Me interesa especialmente cómo utiliza datos del cuerpo para generar experiencias, y cómo la obra no existe de la misma manera sin la participación de las personas.
 
-
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Mi intención es que la obra funcione como un sistema sensible a la presencia humana, donde el sonido actúe como una manifestación de esa interacción. Más que controlar directamente la obra, el usuario la influye, generando una relación más orgánica entre cuerpo, espacio y sistema digital.
   
 
