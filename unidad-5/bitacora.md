@@ -53,10 +53,80 @@ Finalmente, el sonido se reproduce en el espacio.
   <img width="1200" height="630" alt="image" src="https://github.com/user-attachments/assets/5624b991-e8da-4758-a43e-9fa525164873" />
   Su trabajo es clave porque pone al público en el centro de la obra. Me interesa especialmente cómo utiliza datos del cuerpo para generar experiencias, y cómo la obra no existe de la misma manera sin la participación de las personas.
 
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Mi intención es que la obra funcione como un sistema sensible a la presencia humana, donde el sonido actúe como una manifestación de esa interacción. Más que controlar directamente la obra, el usuario la influye, generando una relación más orgánica entre cuerpo, espacio y sistema digital.
-  
+  ### Holly Herndon
+  <img width="2560" height="1706" alt="image" src="https://github.com/user-attachments/assets/ee706199-9474-49e1-ad45-c52f81f3d559" />
+  Holly Herndon trabaja con sistemas generativos y el uso de tecnología para producir sonido en tiempo real. Su enfoque mezcla lo humano y lo artificial, lo cual conecta directamente con la intención de mi obra. Me interesa cómo el audio no es completamente predefinido, sino que emerge a partir de un sistema. Esto me inspira a pensar el sonido como algo vivo, que cambia dependiendo de la interacción del usuario.
 
+  ### Brian Eno (música generativa)
+  <img width="1000" height="668" alt="image" src="https://github.com/user-attachments/assets/36db6320-8a17-4b40-a7c6-2987daf8c8f0" />
+  Brian Eno es uno de los referentes más importantes en música generativa. Su enfoque se basa en sistemas que producen variaciones constantes sin repetirse exactamente. Esto es clave para mi proyecto porque quiero evitar loops evidentes y generar una sensación de evolución continua en el sonido, dependiendo de la presencia del público.
+
+  
+- Mi intención es que la obra funcione como un sistema sensible a la presencia humana, donde el sonido actúe como una manifestación de esa interacción. Más que controlar directamente la obra, el usuario la influye, generando una relación más orgánica entre cuerpo, espacio y sistema digital.
+
+
+### Técnicas de audio generativo que voy a usar
+
+1. Generación de patrones dinámicos
+
+Voy a usar Strudel para generar patrones rítmicos o sonoros que no sean completamente fijos, sino que puedan variar en el tiempo.
+
+¿Por qué?
+Porque quiero que el sonido se sienta vivo, no repetitivo. Esto conecta con la idea de que el sistema responde y evoluciona.
+
+2. Modulación de parámetros en tiempo real
+
+Planeo controlar variables como:
+
+Velocidad (tempo)
+
+Densidad de eventos sonoros
+
+Volumen
+
+Filtros (frecuencia)
+
+Estos parámetros van a cambiar según la interacción del usuario.
+
+¿Por qué?
+Esto permite que el cuerpo del usuario influya directamente en el comportamiento del sistema, reforzando la idea de co-creación.
+
+3. Relación input → sonido (mapping)
+
+Voy a trabajar un mapping donde los datos del usuario (por ejemplo, movimiento o presencia detectada por cámara) se traduzcan en cambios en el audio.
+
+Ejemplo:
+
+Más movimiento → más densidad sonora
+
+Menos movimiento → sonido más ambiental o vacío
+
+¿Por qué?
+Porque quiero que la relación sea intuitiva, aunque no sea explícita, para que el usuario la descubra explorando.
+
+4. Capas sonoras (layering)
+
+El sistema tendrá varias capas de sonido:
+
+Base ambiental (siempre presente)
+
+Capas que se activan con interacción
+
+Elementos más intensos según mayor actividad
+
+¿Por qué?
+Esto permite construir una experiencia progresiva, donde el sistema “despierta” poco a poco.
+
+5. Variación continua (no loops evidentes)
+
+Voy a evitar estructuras repetitivas muy marcadas y trabajar con variaciones constantes.
+
+¿Por qué?
+Para que la experiencia se sienta orgánica y no mecánica, alineada con la idea de un sistema “vivo”.
+
+Conclusión
+
+Los referentes me ayudaron a entender cómo el audio generativo puede ser usado no solo como sonido de fondo, sino como el elemento principal de una experiencia interactiva. A partir de esto, decidí trabajar con un sistema donde el sonido responde en tiempo real a la presencia del usuario, utilizando variaciones, capas y modulación de parámetros para generar una experiencia inmersiva y cambiante.
 
 
 ## Bitácora de aplicación 
