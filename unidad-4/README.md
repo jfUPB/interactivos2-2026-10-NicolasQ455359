@@ -28,10 +28,25 @@ Para poner a funcionar el sistema completo, debes levantar **tres servidores/pro
    ```bash
    pnpm dev
    ```
-4. *Esto levantará Strudel y el WebSocket de música en el puerto `8081`.*
+4. *Esto levantará Strudel en el navegador.*
+
+### Paso 1.5: Levantar el Puente de Strudel (oscBridge)
+1. Abre una **nueva** terminal y navega a la carpeta puente:
+   ```bash
+   cd "strudel-visuals/oscBridge"
+   ```
+2. Instala dependencias (solo la primera vez):
+   ```bash
+   npm install
+   ```
+3. Ejecuta el archivo:
+   ```bash
+   node bridge.js
+   ```
+4. *Esto escuchará a Strudel y transmitirá eventos hacia las visuales en el puerto `8081`.*
 
 ### Paso 2: Levantar el Puente de Open Stage Control (OSC)
-1. Abre una **nueva** terminal y navega a la carpeta de tu puente OSC:
+1. Abre una **cuarta** terminal y navega a la carpeta de tu puente OSC:
    ```bash
    cd "ProyectoOSC/OpenStageControlUITest"
    ```
@@ -68,10 +83,10 @@ http://localhost:4321/visualesHouse.html
 💡 **Tip:** Revisa la esquina superior izquierda de la pantalla (HUD). Si los tres sistemas están conectados correctamente, verás:
 `Strudel: ✅ (8081) | OSC: ✅ (8082) | Audience: ✅ (8083)`
 
----
-
 ## 📁 Estructura Principal del Proyecto
-- `/strudelP5-tests-main/visualesHouse.html` -> Archivo principal de p5.js con la obra visual.
-- `/audienceBridge/server.js` -> Servidor Node.js para el público.
+- `/strudel/` -> Motor de audio live coding.
+- `/strudel-visuals/visualesHouse.html` -> Obra visual en p5.js.
+- `/strudel-visuals/oscBridge/bridge.js` -> Puente de Node.js para las notas musicales.
+- `/audienceBridge/server.js` -> Servidor Node.js interactivo para el público.
 - `/audienceBridge/audience.html` -> Interfaz móvil ("Audience Arena").
-- `/ProyectoOSC/OpenStageControlUITest/bridgeUI.js` -> Puente UDP a WebSockets para el Knob.
+- `/ProyectoOSC/OpenStageControlUITest/bridgeUI.js` -> Puente UDP a WebSockets para el Knob OSC.
