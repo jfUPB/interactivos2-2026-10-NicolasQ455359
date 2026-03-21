@@ -4,17 +4,17 @@
 
 ## Actividad 01: Concepto de la Obra
 
-**¿Qué quieres comunicar o provocar con tu obra? (intención artística/estética)**
+**¿Qué quiero comunicar o provocar con mi obra? (intención artística/estética)**
 Quiero comunicar la "ansiedad digital" y provocar una sensación de inmersión total en la sobrecarga tecnológica y la extrema velocidad de la era contemporánea. La estética se basa en el ruido algorítmico, el ritmo hiper-mecanizado y el flujo abrumador de información.
 
 **¿En qué contexto se presentará? (sala oscura, espacio abierto, escenario, etc.)**
 Se presentará en un espacio de instalación cerrado, preferentemente un **Mini Domo** o una sala oscura envolvente a media luz, maximizando el aislamiento sensorial para potenciar la acústica y el contraste de las proyecciones visuales parpadeantes.
 
-**¿Cuál es la experiencia que deseas para el público? (contemplativa, participativa, inmersiva, etc.)**
-Se busca una experiencia **inmersiva e hiper-estimulante**. Comenzará con un silencio tenso espeluznante, casi contemplativo, que escalará violentamente hacia una tormenta electrónica opresiva e hipnótica, ahogando los sentidos de la audiencia.
+**¿Cuál es la experiencia que deseo para el público? (contemplativa, participativa, inmersiva, etc.)**
+Busco una experiencia **inmersiva e hiper-estimulante**. Comenzará con un silencio tenso espeluznante, casi contemplativo, que escalará violentamente hacia una tormenta electrónica opresiva e hipnótica, ahogando los sentidos de la audiencia.
 
 **¿Qué rol tendrá el público? (observador, participante activo, co-creador, etc.)**
-El público tendrá un rol de **observador inmerso**. Su rol principal es el de un partícipe sensorial pasivo enfrentado al volumen de datos, permitiendo que la obra lo sature por completo. A futuro, este rol podría derivar parcialmente en "participante activo" mediante envío de variables externas a la red interna que rige el servidor.
+El público tendrá un rol de **observador inmerso**. Su rol principal es el de un partícipe sensorial pasivo enfrentado al volumen de datos, permitiendo que la obra lo sature por completo. A futuro, este rol podría derivar parcialmente en "participante activo" mediante el envío de variables externas a la red interna que rige mi servidor.
 
 **Primer diagrama de arquitectura del sistema:**
 ```mermaid
@@ -24,41 +24,46 @@ flowchart TD
     P --> D[Proyección Inmersiva Mini Domo]
 ```
 
-**Al menos 3 referentes artísticos o técnicos:**
-1. **Ryoji Ikeda**: *data.tron* / *Supercodex* ([Ver video](https://www.youtube.com/watch?v=XzX1kE1KIEc)).
-2. **Autechre (Warp Records)**: *Gantz Graf* ([Ver video](https://www.youtube.com/watch?v=evqsOFQju08)).
-3. **Alva Noto (Carsten Nicolai)**: *Xerrox Series* ([Ver proyecto](https://alvanoto.com/)).
+**Mis 3 referentes artísticos o técnicos:**
+1. **Ryoji Ikeda**: *data.tron* / *Supercodex* ([Ver video de la instalación](https://www.youtube.com/watch?v=XzX1kE1KIEc)).
+> ![Ryoji Ikeda Estética](https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800)
+
+2. **Autechre (Warp Records)**: *Gantz Graf* ([Ver video generativo](https://www.youtube.com/watch?v=evqsOFQju08)).
+> ![Autechre Estética Glitch](https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800)
+
+3. **Alva Noto (Carsten Nicolai)**: *Xerrox Series* ([Ver exposición oficial](https://alvanoto.com/)).
+> ![Alva Noto Minimalismo de Eco](https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800)
 
 ---
 
 ## Actividad 02: Investigación de referentes y técnicas (Seek)
 
-**Los referentes encontrados y por qué son relevantes para tu obra:**
-- **Ryoji Ikeda** es vital porque utiliza frecuencias extremas, *clicks* informáticos y estática pura combinada con proyecciones visuales matemáticas hipercodificadas. Es la inspiración directa para la base estética tecnológica de los pings, redes y el comportamiento láser.
-- **Autechre** es relevante porque su música abraza y expone el caos controlado algorítmico. Su obra *Gantz Graf* muestra visuales abstractos en 3D que reaccionan agudamente al diseño de sonido más fracturado e industrial, demostrando que el error de sistema (el *glitch*) también puede tener bases rítmicas hipnóticas aplicables a mi proyecto.
-- **Alva Noto** es relevante por el uso impecable de las reverberaciones inmensas y ecos sintéticos en fallos acústicos, características estéticas que son absolutamente necesarias para darle la envergadura y sensación de escala "gigante" pretendida en el escenario de tipo Mini Domo.
+**Los referentes encontrados y por qué son relevantes para mi obra:**
+- **Ryoji Ikeda** es vital porque utiliza frecuencias extremas, *clicks* informáticos y estática pura combinada con proyecciones visuales matemáticas hipercodificadas. Es la inspiración directa para mi base estética tecnológica de pings, redes y comportamiento láser.
+- **Autechre** es relevante porque su música abraza y expone el caos controlado algorítmico. Su obra *Gantz Graf* muestra visuales abstractos en 3D que reaccionan agudamente a la percusión más fracturada e industrial, demostrando que el error de sistema (el *glitch*) también puede tener bases rítmicas hipnóticas aplicables a mi proyecto.
+- **Alva Noto** es relevante por su uso impecable de las reverberaciones inmensas y ecos sintéticos en fallos acústicos. Estas características estéticas me son absolutamente necesarias para darle a la partitura la envergadura y sensación de escala "gigante" requeridas en un escenario como el Mini Domo.
 
-**Las técnicas de audio generativo que planeas usar y por qué se ajustan a tu concepto:**
-- **Live Coding Multicapa (Strudel/TidalCycles)**: Se usará programación en vivo con sintaxis de bucles concadenados, porque una "Tormenta de Datos" no debe ser un escenario musical de audio estático, esta debe evolucionar de manera impredecible y reaccionar a variables modulares en tiempo real.
-- **Manipulación Destructiva de Ondas (Bitcrush, Jux rev y LPF/HPF)**: Usaré funciones matemáticas destructivas para machacar los sonidos de fábrica introduciendo distorsión opresiva a propósito, encajando estéticamente con los principios teóricos del arte del *Data Overload*.
-- **Arreglos Lógicos de Variación Dinámica (0 a 3)**: Almacenaré listas de comportamientos métricos donde un simple ajuste de variable externa sobre el código desatará mutaciones mucho más agresivas y veloces en todas las 8 subcapas a la vez.
+**Las técnicas de audio generativo que planeo usar y por qué se ajustan a mi concepto:**
+- **Live Coding Multicapa (Strudel/TidalCycles)**: Usaré programación en vivo con sintaxis de bucles encadenados. Mi obra no debe ser un escenario musical de audio estático; debe evolucionar de manera impredecible y reaccionar a variables modulares algorítmicas en tiempo real.
+- **Manipulación Destructiva de Ondas (Bitcrush, Jux rev y LPF/HPF)**: Usaré funciones matemáticas destructivas para machacar los samples introduciendo distorsión opresiva a propósito, encajando a la perfección con los principios teóricos de mi concepto de *Data Overload*.
+- **Arreglos Lógicos de Variación Dinámica (0 a 3)**: Almacenaré listas de comportamientos métricos, de forma que un simple ajuste de mis variables en el código desate mutaciones mucho más agresivas y veloces en todas mis 8 subcapas orquestales simultáneamente.
 
 ---
 
 ## Actividad 03: Implementación del audio generativo (Build)
 
-**El proceso de creación de tu audio generativo:**
-El proceso creativo inició conceptualizando 8 capas sonoras autónomas y designándoles un rol narrativo particular de "arquitectura computacional": el ambiente tétrico inicial (Pad y Drone), la base pesada de las máquinas del servidor (Kick 909 y Bass 303), el tráfico y fuga de datos (bips y hi-hats ultrarrápidos de CPU) y el propio exceso destructivo de bits informáticos junto a las sirenas de sistema crítico. En lugar de escribir ritmos paralelos fijos, programé 8 matrices métricas donde cada matriz contiene saltos o cuatro umbrales que ascienden desde un patrón muy lento y silenciado (caos nivel 0) hasta una avalancha estroboscópica abrumadora (caos nivel 3). Finalmente, orquesté todo de manera unificada mediante el REPL.
+**El proceso de creación de mi audio generativo:**
+Mi proceso creativo inició conceptualizando 8 capas sonoras autónomas, asignándoles un rol narrativo a cada una dentro de la "arquitectura computacional": el ambiente tétrico inicial (Pad y Drone alienígena), la percusión pesada base (Kick 909 y Bass 303), el tráfico estroboscópico de datos (bips y hi-hats de CPU ultrarrápidos) y mi propio exceso destructivo con alarmas críticas. En lugar de escribir ritmos fijos, programé 8 matrices de código donde cada matriz cuenta con umbrales que ascienden desde el silencio contemplativo (caos 0) hasta la avalancha estroboscópica abrumadora (caos 3). Finalmente, orquesté todas las líneas de comando en sincronía usando funciones de evaluación nativas en Strudel (`$: stack`).
 
-**Las decisiones técnicas y estéticas que tomaste y por qué:**
-1. **Opacidad Industrial:** Quería el espectro característico sucio del techno industrial primitivo; decidí usar bancos potentes (como la TR909), pero aplicándoles barridos limitadores de frecuencia continua (`lpf`) para apagar intencionalmente su color o viveza melódica y que sonaran rudos y toscos desde el primer golpe.
-2. **Sincronía Nativa Audio-Visual**: Decidí rechazar un cliente HTTP engorroso, en favor de encadenar sub-comandos originarios `.osc()` al pie de cada evaluación musical de Strudel; así el núcleo emite su partitura percutida, permitiendo una conectividad en milisegundos directa hacia los estroboscopios gráficos con HTML Canvas y p5.js.
+**Las decisiones técnicas y estéticas que tomé y por qué:**
+1. **Opacidad Industrial:** Buscaba representar el sucio y opresivo espectro del techno primitivo; decidí cargar bancos icónicos (`TR909`), pero apliqué agresivamente filtros sobre la señal (`lpf`) para apagar intencionalmente el color brillante de fábrica, logrando que los impactos se sintieran como pesada maquinaría.
+2. **Sincronía Nativa Audio-Visual**: Decidí rechazar clientes de conexión ineficientes en favor de encadenar mi emisión de comandos nativamente con un envío `.osc()` al pie y salida de mis capas. Al reproducir una nota, yo mismo dicto el disparo exacto vía evento UDP hacia mis estroboscopios remotos de Node.js -> p5.js, impidiendo la desincronización por milisegundos.
 
-**El código completo de tu pieza de audio:**
+**El código completo de la pieza de audio:**
 ```javascript
 setcpm(135/4)
 
-// VARIABLES DINÁMICAS (0 a 3) - Cambia aquí en vivo mediante Shift+Enter
+// MIS VARIABLES DINÁMICAS (0 a 3) - Cambiables en vivo mediante Shift+Enter
 let SYNTH_PAD = 0; let BASS_DRIVE = 0; let KICK_BEAT = 0; let HIHAT_SWARM = 0;
 let DATA_NOISE = 0; let GLITCH_STORM = 0; let VOICE_CHOP = 0; let ALARM_STATE = 0;
 
@@ -94,47 +99,47 @@ const VOICE = s(voiceScores[VOICE_CHOP]).chop(8).jux(rev).gain(0.9).room(0.4)
 const alarmScores = ["~", "~", "~", "c6*2"]
 const ALARM = note(alarmScores[ALARM_STATE]).s("sine").room(0.8).gain(0.6).chop(4)
 
-/* --- MEZCLA GENERAL (Audio Output) --- */
+/* --- MEZCLA GENERAL (Mi Audio Output) --- */
 $: stack(PAD, BASS, KICK, HIHATS, DATA, GLITCH, VOICE, ALARM).gain(0.8)
 
-/* --- TRANSMISIÓN (Señales de Sincronía Visual hacia OSCBridge) --- */
+/* --- TRANSMISIÓN (Mis Señales de Sincronía Visual hacia OSCBridge) --- */
 $: stack(PAD.osc(), BASS.osc(), KICK.osc(), HIHATS.osc(), DATA.osc(), GLITCH.osc(), VOICE.osc(), ALARM.osc())
 ```
 
-**Instrucciones paso a paso para reproducir tu audio:**
-1. Despliega un intérprete OSC local (ej. `node bridge.js`) en la raíz del proyecto para aperturar el canal WebSocket 3000 de escucha.
-2. Inicia un servidor local de Vite encapsulado apuntando explícitamente y sin choques al entorno ejecutando `pnpm dev --port 5000` en terminal.
-3. Abre el navegador web en la dirección base `http://localhost:5000/`.
-4. Copia del repositorio el respectivo código alfanumérico provisto arriba exactamente como está y plásmalo en el editor del intérprete iterativo (REPL).
-5. Presiona la combinación **Shift + Enter**. Observa que las variables de intensidad de **0 a 3** escalan acústica y gráficamente alterando radicalmente el ambiente bajo evaluación interactiva al vuelo.
+**Instrucciones paso a paso para reproducir la instalación:**
+1. Despliego el intérprete local iniciando mi puente de red: `node bridge.js` (apertura del canal WebSocket 3000).
+2. Inicio en terminal cruzada el servidor Vite interno y aislado: `pnpm dev --port 5000`.
+3. Abro desde mi navegador web la dirección reservada `http://localhost:5000/`.
+4. Plásmo directamente este bloque de programación dentro del editor principal iterativo (REPL).
+5. A continuación, ejecuto con presionar **Shift + Enter**. Intervengo interactivamente los topes de variables entre **0** (Ambiente) hasta empujar al pico **3** (Tormenta Digital).
 
 ---
 
 ## Actividad 04: Consolidación y metacognición (Reflect)
 
-**Evalúa si el audio generativo logra la intención estética. ¿Qué ajustarías?**
-La partitura programática logra completamente el estridente y pesado objetivo estético original: la temida "ansiedad digital". Todo quedó brillantemente orquestado gracias al contraste en los cortes mecánicos, los chirridos hiperveloces fragmentados y el bajo masivo TB303. Lo único que me animaría a refinar estructuralmente a futuro, sería integrar en sitio procesadores y sensores paramétricos reactivos (e.g. captadores volumétricos láser o micrófonos condesadores integrados) de manera que la propia "Tormenta" consuma nativa y directamente las exclamaciones reactivas del público utilizándolas como multiplicadores modulares paramétricos en lugar de los manuales 0, 1, 2, y 3.
+**Evaluación de si mi audio generativo logra la intención estética. ¿Qué ajustaría?**
+Mi partitura estruendosa programática logra el pesado objetivo estético de la obra originaria: la infame "ansiedad digital". Percibo que esto funcionó maravillosamente gracias al contraste que implementé en mis cortes percusivos y mecánicos de la TB303 frente al minimalismo fantasma del Drone 909. Si deseara refinar estructuralmente este proyecto de domo en el futuro, integraría sensores o micrófonos de condensación reales en sala, de forma tal que mi misma "Tormenta Algorítmica" engulla los decibeles humanos del público, y utilice esos umbrales crudos multiplicando el nivel global de Caos, destituyendo mi dependencia de escribir los valores enteros `1, 2, 3` en consola.
 
-**Diagrama de sistema actualizado:**
+**Mi diagrama de sistema oficial actualizado:**
 ```mermaid
 flowchart TD
-    subgraph S ["Strudel REPL (Servidor Local Viteizado - Puerto 5000)"]
-        V[8 Capas Analíticas / Variables del 0 al 3] --> M[Generador de Síntesis Generativa]
-        M -->|Broadcast Interno Musicalizado .osc()| O((Paquetes Numéricos Estroboscópicos))
+    subgraph S ["Strudel REPL (Servidor Local Vite - Puerto 5000)"]
+        V[Mis 8 Capas Analíticas Estructuradas del 0 al 3] --> M[Analizador de Síntesis Matemática]
+        M -->|Emisión Activa Musicalizada .osc()| O((Paquetes Numéricos Estroboscópicos UDP))
     end
     
-    subgraph B ["Intermediario OSCBridge (Node.js)"]
-        O -->|UDP: Escucha de Datos en 3333| R[Traductor y Parser Central JSON]
-        R -->|Genera Emisión Perpendida TCP| W[WebSocket emisor bidireccional en 3000]
+    subgraph B ["Intermediario OSCBridge Auxiliar (Node.js)"]
+        O -->|UDP: Recepta mis Eventos Múltiples 3333| R[Traductor y Parser JSON]
+        R -->|Retrotransmite Señal Broadcast| W[Emisor WebSockets bidireccional TCP 3000]
     end
     
-    subgraph P ["Instalación del Espectador (visualesHouse p5.js)"]
-        W -->|Receptor Web de Gráficos Asincrono ws://| V2[Canvas Creador / API HTML5]
-        V2 -->|Respuesta luminosa milimétrica en DOM| D[Proyección Frontal / Esférica para Mini Domo]
+    subgraph P ["Instalación Frontal (visualesHouse p5.js)"]
+        W -->|Cliente Lector de Puntos ws://| V2[Canvas Renderizador JS]
+        V2 -->|Inyección Lúminica Milimétrica en DOM| D[Refracción en Esferas Geodésicas / Mini Domo]
     end
 ```
 
-**Principales desafíos que enfrentaste y cómo los resolviste:**
-El desafío procedimental originario y más complejo de sortear fue evadir el motor analizador de dependencias del framework estático inicial del mismísimo intérprete de Strudel. Mezclar código y variables arbitrarias densas dependientes de clientes explícitos WebSocket incrustados a capella, provocaba que el intérprete de JS fallara inusualmente quebrando bucles originando problemas "Mini Parse Errors" fatales. 
+**Principales desafíos que enfrenté y cómo los resolví:**
+Mi desafío central procedimental más complejo de sortear fue esquivar ingeniosamente el motor de parser (analizador léxico) incrustado en el intérprete evaluador de la plataforma web de *Strudel*. Cuando intenté inyectarle directivas variables de sintaxis cruzadas (*WebSockets puros* mezclados con strings de notación), vi que dicho analizador me destrozaba los bucles rítmicos generándome constantes anomalías visualizadas como `"Mini Parse Errors"` fatales para mi código.
 
-Se resolvió la anomalía descartando y purificando la sobre-escritura paramétrica manual dentro del intérprete; recurriendo entonces al redireccionamiento OSC originario puro del propio motor en lenguaje de base (a través de micro-colas paramétricas funcionales `().osc()`), logrando en un par de iteraciones una estabilidad alucinante de envío, cero cuellos de botella para el código de reproducción de partitura, y escalabilidad técnica impoluta. Paralelamente evitamos interferencias y reestructuramos el encapsulado de toda esta red final al puerto `5000`, manteniéndola ilesa frente a otros proyectos curriculares existentes en el terminal.
+Pude solucionar rotunda y limpiamente la anomalía descartando forzar métodos híbridos en JavaScript crudo. Recurrí e investigué la implementación de los envíos direccionales `() => .osc()` preempaquetados de Strudel nativo. Modifiqué la estrategia, y de esta manera, enjaulé toda la transferencia externa aislada hacia mi código de audio, dotando a la pieza de un 100% de firmeza evaluatoria en ejecución ininterrumpible. Así además logré segmentar sin interferencias estructurales mi ecosistema de red en el canal particular `5000`, lejos de pisar mi compilador anterior del puerto `4321`.
