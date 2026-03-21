@@ -19,9 +19,9 @@ El público tendrá un rol de **observador inmerso**. Su rol principal es el de 
 **Primer diagrama de arquitectura del sistema:**
 ```mermaid
 flowchart TD
-    S[Capa de Audio Generativo en Strudel] -->|Parámetros OSC Vía UDP| B[Nodo Intermediario OSCBridge]
-    B -->|Señal Local vía WebSockets| P[Capa Visual Reactiva en p5.js]
-    P --> D[Proyección Inmersiva Mini Domo]
+    B5_1_S[Capa de Audio Generativo en Strudel] -->|Parámetros OSC Vía UDP| B5_1_B[Nodo Intermediario OSCBridge]
+    B5_1_B -->|Señal Local vía WebSockets| B5_1_P[Capa Visual Reactiva en p5.js]
+    B5_1_P --> B5_1_D[Proyección Inmersiva Mini Domo]
 ```
 
 **Mis 3 referentes artísticos o técnicos:**
@@ -123,19 +123,19 @@ Mi partitura estruendosa programática logra el pesado objetivo estético de la 
 **Mi diagrama de sistema oficial actualizado:**
 ```mermaid
 flowchart TD
-    subgraph S ["Strudel REPL (Servidor Local Vite - Puerto 5000)"]
-        V[Mis 8 Capas Analíticas Estructuradas del 0 al 3] --> M[Analizador de Síntesis Matemática]
-        M -->|"Emisión Activa Musicalizada .osc"| O((Paquetes Numéricos Estroboscópicos UDP))
+    subgraph B5_2_S ["Strudel REPL (Servidor Local Vite - Puerto 5000)"]
+        B5_2_V[Mis 8 Capas Analíticas Estructuradas del 0 al 3] --> B5_2_M[Analizador de Síntesis Matemática]
+        B5_2_M -->|"Emisión Activa Musicalizada .osc"| B5_2_O((Paquetes Numéricos Estroboscópicos UDP))
     end
     
-    subgraph B ["Intermediario OSCBridge Auxiliar (Node.js)"]
-        O -->|UDP: Recepta mis Eventos Múltiples 3333| R[Traductor y Parser JSON]
-        R -->|Retrotransmite Señal Broadcast| W[Emisor WebSockets bidireccional TCP 3000]
+    subgraph B5_2_B ["Intermediario OSCBridge Auxiliar (Node.js)"]
+        B5_2_O -->|UDP: Recepta mis Eventos Múltiples 3333| B5_2_R[Traductor y Parser JSON]
+        B5_2_R -->|Retrotransmite Señal Broadcast| B5_2_W[Emisor WebSockets bidireccional TCP 3000]
     end
     
-    subgraph P ["Instalación Frontal (visualesHouse p5.js)"]
-        W -->|Cliente Lector de Puntos ws://| V2[Canvas Renderizador JS]
-        V2 -->|Inyección Lúminica Milimétrica en DOM| D[Refracción en Esferas Geodésicas / Mini Domo]
+    subgraph B5_2_P ["Instalación Frontal (visualesHouse p5.js)"]
+        B5_2_W -->|Cliente Lector de Puntos ws://| B5_2_V2[Canvas Renderizador JS]
+        B5_2_V2 -->|Inyección Lúminica Milimétrica en DOM| B5_2_D[Refracción en Esferas Geodésicas / Mini Domo]
     end
 ```
 
