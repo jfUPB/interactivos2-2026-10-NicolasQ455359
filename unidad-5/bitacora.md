@@ -16,22 +16,14 @@ Busco una experiencia **inmersiva e hiper-estimulante**. Comenzará con un silen
 **¿Qué rol tendrá el público? (observador, participante activo, co-creador, etc.)**
 El público tendrá un rol de **observador inmerso**. Su rol principal es el de un partícipe sensorial pasivo enfrentado al volumen de datos, permitiendo que mi obra lo sature por completo. A futuro, este rol busco que derive parcialmente en "participante activo" mediante el envío de variables externas a la red interna que rige mi servidor.
 
-**Primer diagrama de arquitectura del sistema:**
-```mermaid
-flowchart TD
-    B5_1_S[Capa de Audio Generativo en Strudel] -->|Parámetros OSC Vía UDP| B5_1_B[Nodo Intermediario OSCBridge]
-    B5_1_B -->|Señal Local vía WebSockets| B5_1_P[Capa Visual Reactiva en p5.js]
-    B5_1_P --> B5_1_D[Proyección Inmersiva Mini Domo]
-```
-
 **Mis 3 referentes artísticos o técnicos:**
-1. **Ryoji Ikeda**: *data.tron* / *Supercodex* ([Ver video de la instalación](https://www.youtube.com/watch?v=XzX1kE1KIEc)).
+1. **Ryoji Ikeda**: *data.tron* / *Supercodex*
 > ![Ryoji Ikeda Estética](https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800)
 
-2. **Autechre (Warp Records)**: *Gantz Graf* ([Ver video generativo](https://www.youtube.com/watch?v=evqsOFQju08)).
+2. **Autechre (Warp Records)**: *Gantz Graf*
 > ![Autechre Estética Glitch](https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800)
 
-3. **Alva Noto (Carsten Nicolai)**: *Xerrox Series* ([Ver exposición oficial](https://alvanoto.com/)).
+3. **Alva Noto (Carsten Nicolai)**: *Xerrox Series*
 > ![Alva Noto Minimalismo de Eco](https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800)
 
 ---
@@ -121,25 +113,10 @@ $: stack(PAD.osc(), BASS.osc(), KICK.osc(), HIHATS.osc(), DATA.osc(), GLITCH.osc
 Mi partitura estruendosa programática logra el pesado objetivo estético de la obra originaria: la infame "ansiedad digital". Percibo que esto funcionó maravillosamente gracias al contraste que implementé en mis cortes percusivos y mecánicos de la TB303 frente al minimalismo fantasma del Drone 909. Si deseara refinar estructuralmente este proyecto de domo en el futuro, integraría sensores o micrófonos de condensación reales en sala, de forma tal que mi misma "Tormenta Algorítmica" engulla los decibeles humanos del público, y utilice esos umbrales crudos multiplicando el nivel global de Caos, destituyendo mi dependencia de escribir los valores enteros `1, 2, 3` en consola.
 
 **Mi diagrama de sistema oficial actualizado:**
-```mermaid
-flowchart TD
-    subgraph B5_2_S ["Strudel REPL (Servidor Local Vite - Puerto 5000)"]
-        B5_2_V[Mis 8 Capas Analíticas Estructuradas del 0 al 3] --> B5_2_M[Analizador de Síntesis Matemática]
-        B5_2_M -->|"Emisión Activa Musicalizada .osc"| B5_2_O((Paquetes Numéricos Estroboscópicos UDP))
-    end
-    
-    subgraph B5_2_B ["Intermediario OSCBridge Auxiliar (Node.js)"]
-        B5_2_O -->|UDP: Recepta mis Eventos Múltiples 3333| B5_2_R[Traductor y Parser JSON]
-        B5_2_R -->|Retrotransmite Señal Broadcast| B5_2_W[Emisor WebSockets bidireccional TCP 3000]
-    end
-    
-    subgraph B5_2_P ["Instalación Frontal (visualesHouse p5.js)"]
-        B5_2_W -->|Cliente Lector de Puntos ws://| B5_2_V2[Canvas Renderizador JS]
-        B5_2_V2 -->|Inyección Lúminica Milimétrica en DOM| B5_2_D[Refracción en Esferas Geodésicas / Mini Domo]
-    end
-```
+<img width="278" height="694" alt="image" src="https://github.com/user-attachments/assets/7e6bd537-3e53-44e6-bb21-5a68dc62d09c" />
+
 
 **Principales desafíos que enfrenté y cómo los resolví:**
-Mi desafío central procedimental más complejo de sortear fue esquivar ingeniosamente el motor de parser (analizador léxico) incrustado en el intérprete evaluador de la plataforma web de *Strudel*. Cuando intenté inyectarle directivas variables de sintaxis cruzadas (*WebSockets puros* mezclados con strings de notación), vi que dicho analizador me destrozaba los bucles rítmicos generándome constantes anomalías visualizadas como `"Mini Parse Errors"` fatales para mi código.
+Mi desafío central procedimental más complejo de sortear fue esquivar ingeniosamente el motor de parser incrustado en el intérprete evaluador de la plataforma web de *Strudel*. Cuando intenté inyectarle directivas variables de sintaxis cruzadas, vi que dicho analizador me destrozaba los bucles rítmicos generándome constantes anomalías visualizadas como `"Mini Parse Errors"` fatales para mi código.
 
-Pude solucionar rotunda y limpiamente la anomalía descartando forzar métodos híbridos en JavaScript crudo. Recurrí e investigué la implementación de los envíos direccionales `() => .osc()` preempaquetados de Strudel nativo. Modifiqué la estrategia, y de esta manera, enjaulé toda la transferencia externa aislada hacia mi código de audio, dotando a la pieza de un 100% de firmeza evaluatoria en ejecución ininterrumpible. Así además logré segmentar sin interferencias estructurales mi ecosistema de red en el canal particular `5000`, lejos de pisar mi compilador anterior del puerto `4321`.
+Pude solucionar rotunda y limpiamente la anomalía descartando forzar métodos híbridos en JavaScript crudo. Recurrí e investigué la implementación de los envíos direccionales `() => .osc()` preempaquetados de Strudel nativo. Modifiqué la estrategia, y de esta manera, enjaulé toda la transferencia externa aislada hacia mi código de audio, dotando a la pieza de un 100% de firmeza evaluatoria en ejecución ininterrumpible. Así además logré segmentar sin interferencias estructurales mi ecosistema de red en el canal particular `5000`.
