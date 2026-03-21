@@ -52,3 +52,8 @@ Lleve a cabo el desarrollo en dos frentes simultaneos: un nuevo ecosistema de se
 
 ## Reflect: Consolidacion y metacognicion
 Incorporar al publico altero fundamentalmente el rol pasivo del espectador audiovisual, convirtiendolos en jugadores colectivos. El principal aprendizaje arquitectonico fue que centralizar el Estado (quien tiene cuantos votos, energia, etc.) rigurosamente dentro del  `server.js` previene desincronizaciones frente a cientos de publicos web conectandose y desconectandose libremente. La obra ahora reside en multiples nodos distribuidos (Live coder, Controlador Físico, Pantalla Principal y Celulares).
+
+**Diagrama de Arquitectura de Sistemas Integrados (Actualizado):**
+
+<img width="703" height="522" alt="image" src="https://github.com/user-attachments/assets/c586e4d9-668c-4a14-bc37-0d1cc1b56da3" />
+
