@@ -125,7 +125,7 @@ Mi partitura estruendosa programática logra el pesado objetivo estético de la 
 flowchart TD
     subgraph S ["Strudel REPL (Servidor Local Vite - Puerto 5000)"]
         V[Mis 8 Capas Analíticas Estructuradas del 0 al 3] --> M[Analizador de Síntesis Matemática]
-        M -->|Emisión Activa Musicalizada .osc()| O((Paquetes Numéricos Estroboscópicos UDP))
+        M -->|"Emisión Activa Musicalizada .osc"| O((Paquetes Numéricos Estroboscópicos UDP))
     end
     
     subgraph B ["Intermediario OSCBridge Auxiliar (Node.js)"]
