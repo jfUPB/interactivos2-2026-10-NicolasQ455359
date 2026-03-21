@@ -8,13 +8,13 @@
 Quiero comunicar la "ansiedad digital" y provocar una sensación de inmersión total en la sobrecarga tecnológica y la extrema velocidad de la era contemporánea. La estética se basa en el ruido algorítmico, el ritmo hiper-mecanizado y el flujo abrumador de información.
 
 **¿En qué contexto se presentará? (sala oscura, espacio abierto, escenario, etc.)**
-Se presentará en un espacio de instalación cerrado, preferentemente un **Mini Domo** o una sala oscura envolvente a media luz, maximizando el aislamiento sensorial para potenciar la acústica y el contraste de las proyecciones visuales parpadeantes.
+La presentaré en un espacio de instalación cerrado, preferentemente un **Mini Domo** o una sala oscura envolvente a media luz, maximizando el aislamiento sensorial para potenciar la acústica y el contraste de las proyecciones visuales parpadeantes.
 
 **¿Cuál es la experiencia que deseo para el público? (contemplativa, participativa, inmersiva, etc.)**
 Busco una experiencia **inmersiva e hiper-estimulante**. Comenzará con un silencio tenso espeluznante, casi contemplativo, que escalará violentamente hacia una tormenta electrónica opresiva e hipnótica, ahogando los sentidos de la audiencia.
 
 **¿Qué rol tendrá el público? (observador, participante activo, co-creador, etc.)**
-El público tendrá un rol de **observador inmerso**. Su rol principal es el de un partícipe sensorial pasivo enfrentado al volumen de datos, permitiendo que la obra lo sature por completo. A futuro, este rol podría derivar parcialmente en "participante activo" mediante el envío de variables externas a la red interna que rige mi servidor.
+El público tendrá un rol de **observador inmerso**. Su rol principal es el de un partícipe sensorial pasivo enfrentado al volumen de datos, permitiendo que mi obra lo sature por completo. A futuro, este rol busco que derive parcialmente en "participante activo" mediante el envío de variables externas a la red interna que rige mi servidor.
 
 **Primer diagrama de arquitectura del sistema:**
 ```mermaid
