@@ -1,8 +1,8 @@
-# Audiovisual Live Coding System: Strudel + OSC + Audience Arena 
+# Audiovisual Live Coding System: Strudel + OSC + Audience Arena 🎮
 
 Este repositorio contiene una obra audiovisual inmersiva e interactiva que integra **Live Coding Musical (Strudel)**, **Superficies de Control (Open Stage Control)** y **Participacion de Publico Masiva (Smartphones)** usando p5.js y WebSockets.
 
-##  Requisitos Previos
+## 🚀 Requisitos Previos
 
 Asegúrate de tener instalado en tu computadora:
 1. [Node.js](https://nodejs.org/) (versión 16+)
@@ -11,7 +11,7 @@ Asegúrate de tener instalado en tu computadora:
 
 ---
 
-##  Instrucciones de Instalación y Ejecución
+## 🛠️ Instrucciones de Instalación y Ejecución
 
 Para poner a funcionar el sistema completo, debes levantar **tres servidores/procesos simultáneos** en diferentes terminales.
 
@@ -59,7 +59,7 @@ Para poner a funcionar el sistema completo, debes levantar **tres servidores/pro
 
 ---
 
-##  Visualizacion
+## 🎨 Visualizacion
 Finalmente, abre tu navegador y entra a:
 ```
 http://localhost:4321/visualesHouse.html
@@ -70,7 +70,7 @@ http://localhost:4321/visualesHouse.html
 
 ---
 
-##  Estructura Principal del Proyecto
+## 📁 Estructura Principal del Proyecto
 - `/strudelP5-tests-main/visualesHouse.html` -> Archivo principal de p5.js con la obra visual.
 - `/audienceBridge/server.js` -> Servidor Node.js para el público.
 - `/audienceBridge/audience.html` -> Interfaz móvil ("Audience Arena").

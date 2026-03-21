@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎮 Audience Arena</title>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #141a22;
+      --text: #ffffff;
+      --accent: #00ffd5;
+      --v-0: #10b981; /* Bosque */
+      --v-1: #3b82f6; /* Ruinas */
+      --v-2: #8b5cf6; /* Cueva */
+      --v-3: #ef4444; /* Boss */
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); overflow-x: hidden; user-select: none; -webkit-user-select: none; }
+    
+    header {
+      background: rgba(20, 26, 34, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    header h1 { font-size: 1.2rem; font-weight: 800; letter-spacing: 1px; color: var(--accent); text-transform: uppercase; }
+    .status { font-size: 0.8rem; opacity: 0.8; display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
+
+    main { padding: 1rem; display: flex; flex-direction: column; gap: 1.5rem; max-width: 500px; margin: 0 auto; }
+    
+    .card {
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 1.2rem;
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .card h2 { font-size: 1.1rem; margin-bottom: 1rem; font-weight: 600; opacity: 0.9; }
+
+    /* --- BIOME VOTING --- */
+    .vote-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-vote {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1rem 0.5rem;
+      color: white;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-vote:active { transform: scale(0.95); }
+    .btn-vote span.icon { font-size: 1.8rem; }
+    .btn-vote .bar {
+      position: absolute; bottom: 0; left: 0; height: 3px; width: 0%;
+      transition: width 0.3s ease;
+    }
+    .btn-vote[data-b="0"] .bar { background: var(--v-0); box-shadow: 0 -2px 10px var(--v-0); }
+    .btn-vote[data-b="1"] .bar { background: var(--v-1); box-shadow: 0 -2px 10px var(--v-1); }
+    .btn-vote[data-b="2"] .bar { background: var(--v-2); box-shadow: 0 -2px 10px var(--v-2); }
+    .btn-vote[data-b="3"] .bar { background: var(--v-3); box-shadow: 0 -2px 10px var(--v-3); }
+    
+    .vote-count { font-size: 0.8rem; opacity: 0.6; font-weight: normal; }
+    
+    .vote-active { pointer-events: none; opacity: 0.5; }
+
+    /* --- ACTION BUTTONS --- */
+    .action-row {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-action {
+      flex: 1;
+      border: none;
+      border-radius: 14px;
+      padding: 1.2rem 0.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.1s;
+    }
+    .btn-action:active { transform: scale(0.92); }
+    .btn-action .icon { font-size: 2rem; }
+    
+    .btn-life {
+      background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.4) 100%);
+      border: 1px solid rgba(16,185,129,0.3);
+      box-shadow: inset 0 0 20px rgba(16,185,129,0.1), 0 4px 15px rgba(16,185,129,0.1);
+    }
+    .btn-life:active { box-shadow: inset 0 0 30px rgba(16,185,129,0.4) !important; }
+
+    .btn-chaos {
+      background: linear-gradient(135deg, rgba(239,68,68,0.2) 0%, rgba(185,28,28,0.4) 100%);
+      border: 1px solid rgba(239,68,68,0.3);
+      box-shadow: inset 0 0 20px rgba(239,68,68,0.1), 0 4px 15px rgba(239,68,68,0.1);
+    }
+    .btn-chaos:active { box-shadow: inset 0 0 30px rgba(239,68,68,0.4) !important; }
+
+    /* --- ENERGY BAR --- */
+    .energy-container {
+      height: 24px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+      position: relative;
+    }
+    .energy-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f43f5e);
+      background-size: 200% 200%;
+      animation: gradientMove 2s ease infinite;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 15px rgba(236,72,153,0.5);
+    }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    
+    .energy-label {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      z-index: 2;
+    }
+
+    .mega-flash {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: white;
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .mega-flash.active {
+      opacity: 1;
+      transition: none;
+    }
+
+    #conn-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 1000;
+      gap: 1rem;
+    }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div id="conn-overlay">
+    <div class="spinner"></div>
+    <h3>Conectando a la Arena...</h3>
+  </div>
+
+  <div class="mega-flash" id="mega-flash"></div>
+
+  <header>
+    <h1>🎮 Audience Arena</h1>
+    <div class="status">
+      <span class="status-dot" id="ws-dot"></span>
+      <span id="player-count">0 en línea</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>🗳️ Votar Bioma</h2>
+      <p style="font-size:0.8rem; opacity:0.6; margin-bottom:1rem; line-height:1.4;">
+        El bioma con más votos cambiará el mundo del juego.
+      </p>
+      <div class="vote-grid">
+        <button class="btn-vote" data-b="0" onclick="vote(0)">
+          <span class="icon">🌳</span>
+          Bosque
+          <span class="vote-count" id="vc-0">0 votos</span>
+          <div class="bar"></div>
+        </button>
+        <button class="btn-vote" data-b="1" onclick="vote(1)">
+          <span class="icon">🏛️</span>
+          Ruinas
+          <span class="vote-count" id="vc-1">0 votos</span>
+          <div class="bar"></div>
+        </button>
+        <button class="btn-vote" data-b="2" onclick="vote(2)">
+          <span class="icon">🦇</span>
+          Cueva
+          <span class="vote-count" id="vc-2">0 votos</span>
+          <div class="bar"></div>
+        </button>
+        <button class="btn-vote" data-b="3" onclick="vote(3)">
+          <span class="icon">🔥</span>
+          Boss Zone
+          <span class="vote-count" id="vc-3">0 votos</span>
+          <div class="bar"></div>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚡ Intervención Divina</h2>
+      <p style="font-size:0.8rem; opacity:0.6; margin-bottom:1rem; line-height:1.4;">
+        Envía ayuda al jugador o genera caos en el mundo. ¡Múltiples toques cargan la energía colectiva!
+      </p>
+      <div class="action-row">
+        <button class="btn-action btn-life" onclick="sendLife()">
+          <span class="icon">❤️</span>
+          Enviar Vida
+        </button>
+        <button class="btn-action btn-chaos" onclick="sendChaos()">
+          <span class="icon">💀</span>
+          Invocar Caos
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:0.8rem;">
+        <h2>✨ Energía Colectiva</h2>
+        <span style="font-size:0.8rem; opacity:0.5; font-weight:bold;">MEGA EVENTO AL 80%</span>
+      </div>
+      <div class="energy-container">
+        <div class="energy-fill" id="energy-bar"></div>
+        <div class="energy-label" id="energy-text">0%</div>
+      </div>
+      <button style="width:100%; margin-top:1rem; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-weight:bold; cursor:pointer;" onclick="spamEnergy()">
+        ¡Bombear Energía! 👈
+      </button>
+    </div>
+  </main>
+
+  <script>
+    let ws;
+    let wsUrl = `ws://${window.location.hostname}:8083`;
+    let canVote = true;
+    let actionTimeout = false;
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        document.getElementById('conn-overlay').style.display = 'none';
+        document.getElementById('ws-dot').style.background = '#22c55e';
+        document.getElementById('ws-dot').style.boxShadow = '0 0 8px #22c55e';
+      };
+
+      ws.onclose = () => {
+        document.getElementById('conn-overlay').style.display = 'flex';
+        document.getElementById('ws-dot').style.background = '#ef4444';
+        document.getElementById('ws-dot').style.boxShadow = '0 0 8px #ef4444';
+        setTimeout(connect, 2000);
+      };
+
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        
+        switch(msg.type) {
+          case 'connected':
+          case 'audience_count':
+            document.getElementById('player-count').innerText = `${msg.count} en línea`;
+            break;
+            
+          case 'state':
+            document.getElementById('player-count').innerText = `${msg.connected} en línea`;
+            updateVotes(msg.votes);
+            updateEnergy(msg.energy);
+            highlightCurrentBiome(msg.biome);
+            break;
+            
+          case 'votes_update':
+            updateVotes(msg.votes);
+            break;
+            
+          case 'vote_started':
+            // Podemos mostrar una alerta visual de que la votación está en curso,
+            // pero NO bloqueamos los botones para los demás.
+            break;
+            
+          case 'vote_result':
+            updateVotes(msg.votes);
+            highlightCurrentBiome(msg.biome);
+            // Flash screen subtle
+            document.body.style.background = 'white';
+            setTimeout(() => document.body.style.background = 'var(--bg)', 50);
+            break;
+            
+          case 'energy_update':
+            updateEnergy(msg.energy);
+            break;
+            
+          case 'mega_event':
+            triggerMegaEventUI();
+            break;
+        }
+      };
+    }
+
+    function vote(biomeId) {
+      if(!canVote) return;
+      if(ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'vote_biome', biome: biomeId }));
+        // Animación de feedback local
+        const btn = document.querySelector(`[data-b="${biomeId}"]`);
+        btn.style.transform = 'scale(0.9)';
+        setTimeout(()=> btn.style.transform = '', 100);
+
+        // Pequeño cooldown local (ej: 0.5s) para que no hagan spam de 1000 clics por segundo
+        canVote = false;
+        setTimeout(() => { canVote = true; }, 500);
+      }
+    }
+
+    function sendLife() {
+      if(actionTimeout) return;
+      if(ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'send_life' }));
+        triggerHaptic();
+        setActionCooldown();
+      }
+    }
+
+    function sendChaos() {
+      if(actionTimeout) return;
+      if(ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'send_chaos' }));
+        triggerHaptic();
+        setActionCooldown();
+      }
+    }
+
+    function spamEnergy() {
+      if(ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'send_energy' }));
+        // Pequeña vibración en cada tap si el navegador lo soporta
+        if(navigator.vibrate) navigator.vibrate(10);
+      }
+    }
+
+    function setActionCooldown() {
+      actionTimeout = true;
+      document.querySelectorAll('.btn-action').forEach(b => b.style.opacity = '0.5');
+      setTimeout(() => {
+        actionTimeout = false;
+        document.querySelectorAll('.btn-action').forEach(b => b.style.opacity = '1');
+      }, 500);
+    }
+
+    function updateVotes(votesList) {
+      const total = votesList.reduce((a,b)=>a+b, 0);
+      for(let i=0; i<4; i++) {
+        document.getElementById(`vc-${i}`).innerText = `${votesList[i]} votos`;
+        const pct = total === 0 ? 0 : (votesList[i]/total)*100;
+        document.querySelector(`[data-b="${i}"] .bar`).style.width = `${pct}%`;
+      }
+    }
+
+    function highlightCurrentBiome(biomeId) {
+      document.querySelectorAll('.btn-vote').forEach(b => {
+        b.style.border = '1px solid rgba(255,255,255,0.1)';
+        b.style.background = 'rgba(255,255,255,0.05)';
+      });
+      const active = document.querySelector(`[data-b="${biomeId}"]`);
+      if(active) {
+        active.style.border = `1px solid var(--v-${biomeId})`;
+        active.style.background = `rgba(255,255,255,0.1)`;
+      }
+    }
+
+    function updateEnergy(val) {
+      const bar = document.getElementById('energy-bar');
+      const text = document.getElementById('energy-text');
+      bar.style.width = `${val}%`;
+      text.innerText = `${Math.floor(val)}%`;
+      
+      if(val >= 80) {
+        bar.style.boxShadow = '0 0 25px rgba(255, 255, 255, 0.8)';
+        text.style.color = 'white';
+        text.style.textShadow = '0 0 10px white';
+      } else {
+        bar.style.boxShadow = '0 0 15px rgba(236,72,153,0.5)';
+        text.style.textShadow = '0 1px 3px rgba(0,0,0,0.8)';
+      }
+    }
+
+    function triggerMegaEventUI() {
+      updateEnergy(0);
+      const flash = document.getElementById('mega-flash');
+      flash.classList.add('active');
+      triggerHaptic(500); // Vibración larga
+      setTimeout(() => flash.classList.remove('active'), 50);
+    }
+
+    function triggerHaptic(duration = 40) {
+      if(navigator.vibrate) navigator.vibrate(duration);
+    }
+
+    // Init
+    connect();
+  </script>
+</body>
+</html>
