@@ -67,20 +67,5 @@ Al reflexionar sobre este proceso, lo mas valioso fue entender la escalabilidad 
 
 **Diagrama de Arquitectura del Sistema (Actualizado):**
 
-```mermaid
-graph TD;
-    subgraph Live Coding Musical
-        S[Strudel] -- Envia triggers musicales --> B1[Bridge Strudel: WS p.8081]
-    end
+<img width="699" height="597" alt="image" src="https://github.com/user-attachments/assets/79a8ba43-cce7-4f27-9fe9-a69442225e44" />
 
-    subgraph Superficie de Control
-        OSC[Open Stage Control] -- Knob /biome --> UDP[UDP Protocol p.9000]
-        UDP --> B2[bridgeUI.js: WS p.8082]
-    end
-
-    subgraph Cliente Visual
-        B1 -.->|ws://localhost:8081| P[p5.js visualesHouse.html]
-        B2 -.->|ws://localhost:8082| P
-        P --> V[Generacion de Bioma, Particulas, HUD]
-    end
-```
