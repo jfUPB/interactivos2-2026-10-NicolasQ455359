@@ -190,5 +190,7 @@ http://localhost:4321/visualesHouse.html
 - `/audienceBridge/audience.html` -> Interfaz móvil ("Audience Arena").
   <img width="1869" height="967" alt="image" src="https://github.com/user-attachments/assets/10b9da74-f218-4e39-bef1-c7e789605f3b" />
 - `/ProyectoOSC/OpenStageControlUITest/bridgeUI.js` -> Puente UDP a WebSockets para el Knob OSC.
+- <img width="829" height="644" alt="image" src="https://github.com/user-attachments/assets/4969b140-0a27-4bca-a4b4-8c4574892fe7" />
   <img width="1867" height="976" alt="image" src="https://github.com/user-attachments/assets/9e7ac0f8-b1e1-4977-8a15-678d9a372363" />
+  
 
