@@ -85,8 +85,110 @@ http://localhost:4321/visualesHouse.html
 
 ## 📁 Estructura Principal del Proyecto
 - `/strudel/` -> Motor de audio live coding.
+  ```
+  setcpm(112/4)
+   // 0–3 (cambia estos valores para tus “variaciones del videojuego”)
+   let DRONE_SCORE = 0
+   let KICK_SCORE = 0
+   let HAT_SCORE = 0
+   let MELODY_SCORE = 0
+   let EVENT_SCORE = 0
+   
+   /* ---------- DRONE ---------- */
+   const droneScores = [
+     "c3 ~ g3 ~",
+     "c3 ~ g3 bb3",
+     "c3 eb3 g3 ~",
+     "c3 g3 bb3 eb4"
+   ]
+   
+   const DRONE =
+     note(droneScores[DRONE_SCORE])
+       .sound("triangle")
+       .gain(0.12)
+       .lpf(1000)
+       .room(0.7)
+   
+   /* ---------- KICK ---------- */
+   const kickScores = [
+     "~ ~ ~ ~",
+     "bd ~ ~ ~",
+     "bd ~ bd ~",
+     "bd*4"
+   ]
+   
+   const KICK =
+     sound(kickScores[KICK_SCORE])
+       .bank("tr909")
+       .gain(0.7)
+   
+   /* ---------- HATS ---------- */
+   const hatScores = [
+     "~ ~ ~ ~",
+     "~ hh ~ hh",
+     "hh hh ~ hh",
+     "hh*8"
+   ]
+   
+   const HATS =
+     sound(hatScores[HAT_SCORE])
+       .bank("tr909")
+       .gain(0.35)
+       .lpf(7000)
+   
+   /* ---------- MELODÍA ---------- */
+   const melodyScores = [
+     "~ ~ ~ ~",
+     "~ e4 ~ g4",
+     "g4 ~ f4 ~",
+     "<e4 g4 bb4>*2"
+   ]
+   
+   const MELODY =
+     note(melodyScores[MELODY_SCORE])
+       .sound("sine")
+       .gain(0.18)
+       .lpf(3500)
+       .room(0.5)
+   
+   /* ---------- EVENTOS ---------- */
+   const eventScores = [
+     "~ ~ ~ ~",
+     "~ sd ~ ~",
+     "sd ~ sd ~",
+     "sd(3,8)"
+   ]
+   
+   const EVENTS =
+     sound(eventScores[EVENT_SCORE])
+       .bank("tr909")
+       .gain(0.4)
+       .speed("1.4")
+   
+   /* ---------- AUDIO (suena) ---------- */
+   $: stack(
+     DRONE,
+     KICK,
+     HATS,
+     MELODY,
+     EVENTS
+   ).gain(0.9)
+   
+   /* ---------- VISUALES (manda al bridge) ---------- */
+   $: stack(
+     DRONE.osc(),
+     KICK.osc(),
+     HATS.osc(),
+     MELODY.osc(),
+     EVENTS.osc()
+   )
+   ```
 - `/strudel-visuals/visualesHouse.html` -> Obra visual en p5.js.
+  <img width="1870" height="971" alt="image" src="https://github.com/user-attachments/assets/dc5dfac9-e82d-45ad-9199-d5929dff2829" />
 - `/strudel-visuals/oscBridge/bridge.js` -> Puente de Node.js para las notas musicales.
 - `/audienceBridge/server.js` -> Servidor Node.js interactivo para el público.
 - `/audienceBridge/audience.html` -> Interfaz móvil ("Audience Arena").
+  <img width="1869" height="967" alt="image" src="https://github.com/user-attachments/assets/10b9da74-f218-4e39-bef1-c7e789605f3b" />
 - `/ProyectoOSC/OpenStageControlUITest/bridgeUI.js` -> Puente UDP a WebSockets para el Knob OSC.
+  <img width="1867" height="976" alt="image" src="https://github.com/user-attachments/assets/9e7ac0f8-b1e1-4977-8a15-678d9a372363" />
+
