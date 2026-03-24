@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+  <style>
+    body { margin:0; overflow:hidden; background:#000; }
+    canvas { display:block; }
+  </style>
+</head>
+<body>
+<script>
+/* =========================
+   PLATFORMER "TOON" GAME VISUALS (p5)
+   WS: ws://localhost:8081
+
+   ✅ NUEVO:
+   - Strudel puede forzar bioma con p.biome (0..3)
+   - Si llega p.biome => se cambia SCENE inmediatamente
+   - (Opcional) Auto por densidad queda DESACTIVADO por defecto
+
+   Audio mapping:
+   - bd -> jump
+   - hh/oh -> run pulse + footsteps
+   - sd/cp -> shoot
+   - melody (p.n / p.midinote) -> spawn pickups
+   - bioma 0..3 -> cambia paleta + niebla + partículas + dificultad
+========================= */
+
+let ws, wsOk=false;
+let wsOSC, wsOSCOk=false;
+let wsAudience, wsAudienceOk=false; // 📱 Público
+let eventQueue=[];
+let clockOffset=0, offsetInit=false;
+let lastDelta=0;
+let lastMsgAt=0, lastPreview="(aún nada)";
+
+// ---- BIOMAS ----
+let SCENE=0;                 // 0..3
+let AUTO_SCENE=false;        // ✅ por defecto OFF (porque ahora lo controla Strudel/OSC)
+let density=0, densitySmooth=0;
+
+let sceneFlash=0, sceneTitleTimer=0;
+
+// ---- BIOME TRANSITION ----
+let biomeTransition=0;       // 0..1 flash de transición
+
+// ---- AUDIENCE STATE ----
+let audienceCount = 0;
+let audienceEnergy = 0;
+let audienceVotes = [0,0,0,0];
+
+// ---- WORLD + CAMERA ----
+let worldW = 5200;
+let camX = 0;
+let platforms=[];
+
+// ---- ENTITIES ----
+let player;
+let enemies=[];
+let pickups=[];
+let bullets=[];
+let particles=[];
+
+// ---- GAME VARS ----
+let score=0;
+let hp=100;
+let combo=0, comboTimer=0;
+let shake=0;
+
+// ---- TRIGGERS ----
+let trigKick=0, trigHat=0, trigSnare=0, trigMelody=0;
+
+// ---- LIMITS ----
+const MAX_ENEMIES = 18;
+const MAX_PICKUPS = 12;
+const MAX_PARTICLES = 140;
+const MAX_BULLETS = 28;
+
+// ---- GAME OVER ----
+let gameOver=false;
+let restartTimer=0;
+let glitchAmt=0;
+
+function setup(){
+  createCanvas(windowWidth, windowHeight);
+  frameRate(60);
+  textFont("monospace");
+
+  buildLevel(0);
+  player = new Player(120, groundY()-140);
+
+  connectWS();
+  connectOSC();
+  connectAudience();
+}
+
+function groundY(){ return height*0.78; }
+
+function buildLevel(scene){
+  platforms = [];
+  platforms.push(new Platform(0, groundY(), worldW, 90));
+
+  randomSeed(scene*999 + 123);
+
+  for(let i=0;i<26;i++){
+    const w = random(140, 280);
+    const x = 280 + i*180 + random(-40, 40);
+    const y = groundY() - random(120, 320);
+    platforms.push(new Platform(x, y, w, 22));
+  }
+
+  platforms.push(new Platform(1200, groundY()-220, 420, 22));
+  platforms.push(new Platform(2100, groundY()-260, 340, 22));
+  platforms.push(new Platform(3200, groundY()-200, 520, 22));
+  platforms.push(new Platform(4100, groundY()-280, 360, 22));
+}
+
+/* =========================
+   WS Strudel (bridge -> p5) :8081
+========================= */
+function connectWS(){
+  ws = new WebSocket("ws://localhost:8081");
+  ws.onopen = ()=> { wsOk=true; console.log("WS Strudel conectado ✅ (8081)"); };
+  ws.onclose= ()=> wsOk=false;
+  ws.onerror= ()=> wsOk=false;
+
+  ws.onmessage = (event)=>{
+    lastMsgAt = Date.now();
+    let msg;
+    try { msg = JSON.parse(event.data); } catch(e){ return; }
+
+    let p={};
+    if(Array.isArray(msg.args)){
+      for(let i=0;i<msg.args.length;i+=2){
+        p[msg.args[i]] = msg.args[i+1];
+      }
+    }
+
+    lastPreview = `biome:${p.biome ?? "-"} cps:${p.cps ?? "?"} cycle:${p.cycle ?? "?"} delta:${p.delta ?? "?"} s:${p.s ?? "-"} bank:${p.bank ?? "-"}`;
+
+    const now = Date.now();
+    const ts = msg.timestamp ?? now;
+
+    const measured = now - ts;
+    if(!offsetInit){ clockOffset = measured; offsetInit=true; }
+    else { clockOffset = lerp(clockOffset, measured, 0.03); }
+
+    eventQueue.push({timestamp:ts, params:p});
+    eventQueue.sort((a,b)=>a.timestamp-b.timestamp);
+  };
+}
+
+/* =========================
+   WS Open Stage Control (bridgeUI -> p5) :8082
+========================= */
+function connectOSC(){
+  wsOSC = new WebSocket("ws://localhost:8082");
+
+  wsOSC.onopen = ()=> {
+    wsOSCOk = true;
+    console.log("WS OSC conectado ✅ (8082)");
+  };
+  wsOSC.onclose = ()=> {
+    wsOSCOk = false;
+    console.log("WS OSC cerrado — reintentando en 3s");
+    setTimeout(connectOSC, 3000);
+  };
+  wsOSC.onerror = ()=> { wsOSCOk = false; };
+
+  wsOSC.onmessage = (event)=>{
+    let msg;
+    try { msg = JSON.parse(event.data); } catch(e){ return; }
+
+    console.log("OSC msg:", msg.address, msg.args);
+
+    // ---- BIOME KNOB ----
+    if(msg.address === "/biome"){
+      const v = Number(msg.args?.[0]);
+      const b = constrain(parseInt(v, 10), 0, 3);
+      if(!Number.isNaN(b) && b !== SCENE){
+        onSceneChange(SCENE, b);
+        SCENE = b;
+      }
+      lastPreview = `OSC /biome: ${SCENE} (${sceneName(SCENE)})`;
+      return;
+    }
+
+    // fallback
+    const v = Number(msg.args?.[0]);
+    lastPreview = `OSC ${msg.address} ${Number.isFinite(v) ? v : ""}`;
+  };
+}
+
+/* =========================
+   WS Audience (audienceBridge -> p5) :8083
+========================= */
+function connectAudience(){
+  wsAudience = new WebSocket("ws://localhost:8083/visual");
+
+  wsAudience.onopen = ()=> {
+    wsAudienceOk = true;
+    console.log("📱 WS Audiencia conectado ✅ (8083)");
+  };
+  wsAudience.onclose = ()=> {
+    wsAudienceOk = false;
+    console.log("📱 WS Audiencia cerrado — reintentando en 3s");
+    setTimeout(connectAudience, 3000);
+  };
+  wsAudience.onerror = ()=> { wsAudienceOk = false; };
+
+  wsAudience.onmessage = (event)=>{
+    let msg;
+    try { msg = JSON.parse(event.data); } catch(e){ return; }
+
+    if(msg.type === "state" || msg.type === "audience_count") {
+      if(msg.connected !== undefined) audienceCount = msg.connected;
+      if(msg.count !== undefined) audienceCount = msg.count;
+      if(msg.energy !== undefined) audienceEnergy = msg.energy;
+      if(msg.votes !== undefined) audienceVotes = msg.votes;
+    }
+    
+    else if(msg.type === "audience_life"){
+      audienceEnergy = msg.energy;
+      // Curar jugador
+      hp = min(100, hp + 15);
+      // Feedback visual
+      for(let i=0; i<8; i++) spawnPickupBurst(player.x+player.w/2, player.y-20);
+      spawnPickups(1);
+      lastPreview = "❤️ La audiencia te envió VIDA!";
+    }
+    
+    else if(msg.type === "audience_chaos"){
+      audienceEnergy = msg.energy;
+      shake = max(shake, 12);
+      spawnEnemies(2);
+      lastPreview = "💀 La audiencia invocó CAOS!";
+    }
+    
+    else if(msg.type === "audience_biome"){
+      // Ganó una votación
+      const b = msg.biome;
+      audienceVotes = msg.votes;
+      if(b !== SCENE){
+        onSceneChange(SCENE, b);
+        SCENE = b;
+      }
+      lastPreview = `🗳️ El público eligió: ${sceneName(b)}`;
+    }
+
+    else if(msg.type === "audience_mega"){
+      // Mega evento al llegar a 100% de energía
+      audienceEnergy = 0;
+      shake = 25;
+      sceneFlash = 1;
+      // Sanar full
+      hp = 100;
+      // Explotar todos los enemigos cercanos
+      for(let e of enemies){
+         spawnHit(e.x+e.w/2, e.y+e.h/2);
+         // spawnPickupBurst(e.x, e.y); // opcional
+      }
+      enemies.length = 0; // limpia pantalla
+      lastPreview = "⚡ ¡INTERVENCIÓN DIVINA DEL PÚBLICO! ⚡";
+      console.log(lastPreview);
+    }
+  };
+}
+
+/* =========================
+   MAIN LOOP
+========================= */
+function draw(){
+  const now = Date.now();
+
+  // measure density (only if AUTO_SCENE is enabled)
+  density = lerp(density, eventQueue.length, 0.15);
+  densitySmooth = lerp(densitySmooth, density, 0.08);
+
+  // process events
+  while(eventQueue.length>0){
+    const ev = eventQueue[0];
+    const target = ev.timestamp + clockOffset;
+    if(now >= target){
+      eventQueue.shift();
+      lastDelta = now - target;
+      applyAudioEvent(ev.params);
+    } else break;
+  }
+
+  // decay triggers
+  trigKick*=0.70;
+  trigHat*=0.80;
+  trigSnare*=0.75;
+  trigMelody*=0.85;
+
+  if(comboTimer>0) comboTimer--;
+  else combo=0;
+
+  shake *= 0.85;
+  sceneFlash *= 0.86;
+  biomeTransition *= 0.92;
+  if(sceneTitleTimer>0) sceneTitleTimer--;
+
+  // game over
+  if(gameOver){
+    glitchAmt = lerp(glitchAmt, 1, 0.05);
+
+    renderGame();
+    renderHUD();
+    renderGameOverOverlay();
+
+    restartTimer--;
+    if(restartTimer<=0) hardRestart();
+    return;
+  } else {
+    glitchAmt = lerp(glitchAmt, 0, 0.08);
+  }
+
+  // update
+  updateGame();
+
+  // render
+  renderGame();
+  renderHUD();
+}
+
+/* =========================
+   AUDIO -> GAME
+========================= */
+function applyAudioEvent(p){
+
+  // ✅ NUEVO: BIOMA forzado desde Strudel
+  // p.biome puede llegar como string o número
+  if(p.biome !== undefined){
+    const b = constrain(parseInt(p.biome, 10), 0, 3);
+    if(!Number.isNaN(b) && b !== SCENE){
+      onSceneChange(SCENE, b);
+      SCENE = b;
+    }
+  }
+
+  // (Opcional) auto scene por densidad (si lo activas con tecla A)
+  if(AUTO_SCENE){
+    const prev = SCENE;
+    if(densitySmooth < 3) SCENE=0;
+    else if(densitySmooth < 7) SCENE=1;
+    else if(densitySmooth < 12) SCENE=2;
+    else SCENE=3;
+    if(prev !== SCENE) onSceneChange(prev, SCENE);
+  }
+
+  const s = (p.s ?? "").toString();
+
+  // Kick => jump
+  if(s.includes("tr909bd") || s==="bd"){
+    trigKick = 1;
+    player.tryJump(true);
+    shake = max(shake, 2.5);
+  }
+
+  // Hats => run
+  if(s.includes("tr909hh") || s.includes("tr909oh") || s==="hh" || s==="oh"){
+    trigHat = 1;
+    player.runPulse();
+    spawnFootDust(player.x+player.w*0.5, player.y+player.h-6, 5);
+    addCombo(1);
+  }
+
+  // Snare/Clap => shoot
+  if(s.includes("tr909sd") || s.includes("tr909cp") || s==="sd" || s==="cp"){
+    trigSnare = 1;
+    player.shoot();
+    addCombo(2);
+    shake = max(shake, 3.5);
+  }
+
+  // Melody => pickup
+  if(p.n !== undefined || p.midinote !== undefined){
+    trigMelody = 1;
+    spawnPickups(1);
+    addCombo(1);
+  }
+}
+
+function addCombo(v){
+  combo += v;
+  comboTimer = 60;
+  score += v * (1 + floor(combo/6));
+}
+
+/* =========================
+   SCENE CHANGE
+========================= */
+function onSceneChange(prev, next){
+  sceneFlash = 1;
+  biomeTransition = 1;
+  sceneTitleTimer = 120;
+  shake = max(shake, 8);
+
+  // explosion de partículas en transición
+  for(let i=0; i<30; i++){
+    if(particles.length < MAX_PARTICLES){
+      particles.push(new Spark(player.x + player.w*0.5, player.y + player.h*0.5, true));
+    }
+  }
+
+  buildLevel(next);
+
+  // “cambia el universo”
+  if(next===0){
+    enemies.length=0;
+    pickups.length=0;
+    spawnPickups(5);
+  }
+  if(next===1){
+    pickups.length=0;
+    spawnPickups(4);
+    spawnEnemies(3);
+  }
+  if(next===2){
+    spawnEnemies(6);
+  }
+  if(next===3){
+    spawnEnemies(10);
+    pickups.length = min(pickups.length, 2);
+  }
+}
+
+/* =========================
+   GAME UPDATE
+========================= */
+function updateGame(){
+  // spawns por bioma
+  const spawnEnemyEvery = (SCENE===0? 260 : SCENE===1? 200 : SCENE===2? 160 : 120);
+  const spawnPickupEvery = (SCENE===0? 220 : 320);
+
+  if(frameCount % spawnEnemyEvery === 0){
+    if(enemies.length < MAX_ENEMIES) spawnEnemies(1);
+  }
+  if(frameCount % spawnPickupEvery === 0){
+    if(pickups.length < MAX_PICKUPS) spawnPickups(1);
+  }
+
+  player.update(platforms);
+
+  // camera follow
+  camX = lerp(camX, constrain(player.x - width*0.35, 0, worldW - width), 0.08);
+
+  // bullets
+  for(let i=bullets.length-1;i>=0;i--){
+    bullets[i].update();
+    if(bullets[i].dead) bullets.splice(i,1);
+  }
+
+  // enemies
+  for(let i=enemies.length-1;i>=0;i--){
+    enemies[i].update(SCENE, player, platforms);
+
+    if(aabb(enemies[i], player)){
+      damagePlayer(SCENE===3? 10 : 7);
+      spawnHit(enemies[i].x + enemies[i].w*0.5, enemies[i].y + enemies[i].h*0.5);
+      enemies.splice(i,1);
+    }
+
+    for(let j=bullets.length-1;j>=0;j--){
+      if(aabb(bullets[j], enemies[i])){
+        score += 10 + combo;
+        spawnHit(enemies[i].x + enemies[i].w*0.5, enemies[i].y + enemies[i].h*0.4);
+        enemies.splice(i,1);
+        bullets.splice(j,1);
+        addCombo(2);
+        break;
+      }
+    }
+  }
+
+  // pickups
+  for(let i=pickups.length-1;i>=0;i--){
+    pickups[i].update();
+    if(aabb(pickups[i], player)){
+      hp = min(100, hp + 12);
+      score += 14;
+      spawnPickupBurst(pickups[i].x + pickups[i].w*0.5, pickups[i].y + pickups[i].h*0.5);
+      pickups.splice(i,1);
+      addCombo(1);
+    }
+  }
+
+  // particles
+  for(let i=particles.length-1;i>=0;i--){
+    particles[i].update();
+    if(particles[i].dead) particles.splice(i,1);
+  }
+  if(particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
+
+  // fell out
+  if(player.y > height + 320){
+    damagePlayer(12);
+    player.x = camX + 120;
+    player.y = groundY() - 220;
+    player.vx = 0; player.vy = 0;
+    shake = max(shake, 10);
+  }
+}
+
+function damagePlayer(d){
+  hp -= d;
+  shake = max(shake, 10);
+  if(hp <= 0){
+    hp = 0;
+    triggerGameOver();
+  }
+}
+
+function triggerGameOver(){
+  gameOver = true;
+  restartTimer = 180; // 3s
+  sceneFlash = 1;
+  shake = 14;
+
+  for(let i=0;i<80;i++){
+    particles.push(new Spark(player.x + player.w*0.5, player.y + player.h*0.4, true));
+  }
+}
+
+/* =========================
+   RENDER
+========================= */
+function renderGame(){
+  const pal = scenePalette(SCENE);
+
+  background(pal.bg[0], pal.bg[1], pal.bg[2]);
+
+  // fog — cada bioma tiene fog distinto
+  const fogA = (SCENE===0? 25 : SCENE===1? 40 : SCENE===2? 60 : 90);
+  noStroke();
+  fill(0, fogA);
+  rect(0,0,width,height);
+
+  // ---- BIOME-SPECIFIC AMBIENT PARTICLES ----
+  // Biome 0 (BOSQUE): luciérnagas suaves
+  if(SCENE===0 && frameCount % 4 === 0){
+    if(particles.length < MAX_PARTICLES)
+      particles.push(new Mote(camX + random(width), random(height*0.1, height*0.7)));
+  }
+  // Biome 1 (RUINAS): motas flotantes más densas
+  if(SCENE===1 && frameCount % 2 === 0){
+    if(particles.length < MAX_PARTICLES)
+      particles.push(new Mote(camX + random(width), random(height*0.1, height*0.7)));
+  }
+  // Biome 2 (CUEVA): lluvia
+  if(SCENE===2 && frameCount % 2 === 0){
+    if(particles.length < MAX_PARTICLES)
+      particles.push(new RainDrop(camX + random(width), random(height*0.1, height*0.75)));
+  }
+  // Biome 3 (BOSS ZONE): lluvia roja intensa + screen shake sutil
+  if(SCENE===3){
+    if(frameCount % 1 === 0 && particles.length < MAX_PARTICLES){
+      particles.push(new RainDrop(camX + random(width), random(height*0.05, height*0.8)));
+    }
+    if(frameCount % 3 === 0 && particles.length < MAX_PARTICLES){
+      particles.push(new Mote(camX + random(width), random(height*0.1, height*0.6)));
+    }
+    shake = max(shake, 0.6); // sutil vibración constante
+  }
+
+  push();
+
+  // shake
+  if(shake > 0.5) translate(random(-shake, shake), random(-shake, shake));
+
+  // camera
+  translate(-camX, 0);
+
+  drawParallax(pal);
+
+  // ---- BIOME GROUND GLOW ----
+  noStroke();
+  fill(pal.ui[0], pal.ui[1], pal.ui[2], 8 + SCENE * 4);
+  rect(0, groundY() - 2, worldW, 6);
+
+  for(const pl of platforms) pl.draw(pal);
+
+  for(const pk of pickups) pk.draw(pal);
+  for(const en of enemies) en.draw(pal, player);
+  for(const b of bullets) b.draw(pal);
+  for(const fx of particles) fx.draw(pal);
+
+  player.draw(pal);
+
+  pop();
+
+  // flash de transición de bioma
+  if(sceneFlash > 0.02){
+    noStroke();
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], 55*sceneFlash);
+    rect(0,0,width,height);
+  }
+
+  // overlay de transición de bioma (flash blanco que se desvanece)
+  if(biomeTransition > 0.02){
+    noStroke();
+    fill(255, 255, 255, 120 * biomeTransition);
+    rect(0, 0, width, height);
+  }
+
+  // scene title con estilo mejorado
+  if(sceneTitleTimer>0 && !gameOver){
+    const titleAlpha = min(255, sceneTitleTimer * 4);
+    noStroke();
+    // fondo con glow del bioma
+    fill(0, 170 * (titleAlpha/255));
+    rect(width*0.5-220, height*0.12-40, 440, 80, 12);
+    // borde con color del bioma
+    stroke(pal.ui[0], pal.ui[1], pal.ui[2], 100 * (titleAlpha/255));
+    strokeWeight(2);
+    noFill();
+    rect(width*0.5-220, height*0.12-40, 440, 80, 12);
+    // texto
+    noStroke();
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], titleAlpha);
+    textAlign(CENTER, CENTER);
+    textSize(26);
+    text(sceneName(SCENE), width*0.5, height*0.12);
+  }
+
+  // glitch overlay
+  if(glitchAmt > 0.05) drawGlitchOverlay(glitchAmt);
+}
+
+function drawParallax(pal){
+  // ---- LAYER 0: distant mountains / silhouettes ----
+  noStroke();
+  if(SCENE===0){
+    // BOSQUE: montañas verdes suaves
+    fill(15, 30, 20, 80);
+    for(let i=0; i<8; i++){
+      const mx = i*700 - (camX*0.15) % 700;
+      const mh = 120 + sin(i*1.7)*60;
+      triangle(mx-180, groundY(), mx, groundY()-mh, mx+180, groundY());
+      triangle(mx+60, groundY(), mx+200, groundY()-mh*0.7, mx+340, groundY());
+    }
+    // árboles lejanos
+    fill(20, 45, 25, 60);
+    for(let i=0; i<20; i++){
+      const tx = i*280 - (camX*0.25) % 280;
+      const th = 80 + sin(i*2.3)*30;
+      // tronco
+      rect(tx+2, groundY()-th, 6, th);
+      // copa
+      ellipse(tx+5, groundY()-th-15, 40+sin(i)*10, 35+cos(i)*8);
+    }
+  }
+  if(SCENE===1){
+    // RUINAS: columnas rotas en el fondo
+    fill(20, 20, 35, 70);
+    for(let i=0; i<12; i++){
+      const cx = i*460 - (camX*0.2) % 460;
+      const ch = 100 + sin(i*1.3)*50;
+      // columna
+      rect(cx, groundY()-ch, 18, ch);
+      // capitel
+      rect(cx-6, groundY()-ch-8, 30, 10, 3);
+      // columna rota aleatoria
+      if(i%3===0){
+        rect(cx+80, groundY()-ch*0.5, 14, ch*0.5);
+        // escombros
+        ellipse(cx+87, groundY()-2, 28, 10);
+      }
+    }
+    // arcos rotos
+    fill(18, 18, 30, 40);
+    for(let i=0; i<5; i++){
+      const ax = i*1000 - (camX*0.12) % 1000;
+      arc(ax+100, groundY()-80, 200, 160, PI, 0);
+    }
+  }
+  if(SCENE===2){
+    // CUEVA: estalactitas en el techo
+    fill(35, 22, 45, 90);
+    for(let i=0; i<30; i++){
+      const sx = i*190 - (camX*0.1) % 190;
+      const sl = 40 + sin(i*3.1)*35;
+      triangle(sx-8, 0, sx, sl, sx+8, 0);
+      // gota brillante
+      if(i%4===0){
+        fill(pal.ui[0], pal.ui[1], pal.ui[2], 40+sin(frameCount*0.03+i)*20);
+        circle(sx, sl+4, 4);
+        fill(35, 22, 45, 90);
+      }
+    }
+    // formaciones rocosas en fondo
+    fill(30, 18, 38, 50);
+    for(let i=0; i<10; i++){
+      const rx = i*540 - (camX*0.15) % 540;
+      const rh = 60 + sin(i*2.7)*30;
+      ellipse(rx, groundY(), 120+sin(i)*40, rh);
+    }
+  }
+  if(SCENE===3){
+    // BOSS ZONE: pilares de fuego / destrucción
+    fill(40, 12, 12, 80);
+    for(let i=0; i<10; i++){
+      const px = i*550 - (camX*0.18) % 550;
+      const ph = 140 + sin(i*1.5)*50;
+      // pilar agrietado
+      rect(px, groundY()-ph, 22, ph);
+      rect(px-4, groundY()-ph, 30, 8);
+      // llamas en la cima
+      const flicker = sin(frameCount*0.1+i*2)*8;
+      fill(255, 70+flicker*3, 20, 60+flicker*2);
+      ellipse(px+11, groundY()-ph-10-flicker, 24, 18+flicker);
+      fill(255, 180, 40, 40);
+      ellipse(px+11, groundY()-ph-18-flicker*0.5, 14, 12);
+      fill(40, 12, 12, 80);
+    }
+    // grietas de lava en el suelo lejano
+    stroke(255, 60, 20, 30+sin(frameCount*0.05)*15);
+    strokeWeight(2);
+    for(let i=0; i<15; i++){
+      const lx = i*380 - (camX*0.22) % 380;
+      line(lx, groundY()+10, lx+30+sin(i)*20, groundY()+20);
+    }
+    noStroke();
+  }
+
+  // ---- LAYER 1: stars/particles ----
+  noStroke();
+  const starAlpha = (SCENE===2 ? 20 : SCENE===3 ? 70 : 55);
+  const starSpeed = (SCENE===3 ? 1.2 : SCENE===2 ? 0.3 : 0.6);
+  const starCount = (SCENE===2 ? 40 : 120);
+
+  for(let i=0; i<starCount; i++){
+    const x = (i*97 + frameCount*starSpeed) % worldW;
+    const y = (i*53) % height;
+    const pulse = SCENE===3 ? (sin(frameCount*0.05 + i)*0.4 + 0.6) : 1;
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], starAlpha * pulse);
+    circle(x, y, (i%5===0? 2.5 : 1.5));
+  }
+}
+
+function renderHUD(){
+  const pal = scenePalette(SCENE);
+
+  noStroke();
+  fill(0, 160);
+  rect(16, 14, 750, 200, 12);
+
+  fill(255);
+  textAlign(LEFT, TOP);
+  textSize(14);
+
+  text(`Strudel: ${wsOk ? "✅ (8081)" : "⚠️ off"}  |  OSC: ${wsOSCOk ? "✅ (8082)" : "⚠️ off"}  |  Audience: ${wsAudienceOk ? "✅ (8083)" : "⚠️ off"}`, 28, 24);
+  text(`Δ sync: ${lastDelta.toFixed(2)} ms`, 28, 44);
+  text(`FPS: ${Math.round(frameRate())}`, 28, 64);
+
+  // HP
+  fill(255,255,255,70);
+  rect(28, 92, 280, 12, 6);
+  fill(pal.ui[0], pal.ui[1], pal.ui[2]);
+  rect(28, 92, 280*(hp/100), 12, 6);
+
+  fill(255);
+  text(`HP ${hp}`, 320, 88);
+  text(`Score ${score}`, 410, 88);
+  text(`Combo x${max(1, floor(1+combo/6))}`, 410, 106);
+
+  fill(255,255,255,140);
+  const since = ((Date.now()-lastMsgAt)/1000).toFixed(1);
+  text(`msg ${since}s | ${lastPreview}`, 28, 120);
+
+  fill(pal.ui[0], pal.ui[1], pal.ui[2]);
+  text(`bioma:${SCENE} (${sceneName(SCENE)}) | auto:${AUTO_SCENE?"ON":"OFF"}`, 28, 140);
+
+  fill(255,255,255,120);
+  text(`Teclado: 1-4 bioma | A auto-scene`, 28, 160);
+
+  // ---- AUDIENCE INFO ----
+  if (audienceCount > 0) {
+    fill(255, 200, 0);
+    text(`📱 Público: ${audienceCount} conectados`, 540, 88);
+    // Energy bar
+    fill(255,255,255,40);
+    rect(540, 110, 180, 8, 4);
+    fill(255, 60, 150);
+    rect(540, 110, 180*(audienceEnergy/100), 8, 4);
+    fill(255, 200, 200);
+    text(`⚡ Energía: Math.floor(${audienceEnergy})%`, 540, 125);
+    text(`Votos: [${audienceVotes.join(', ')}]`, 540, 145);
+  }
+}
+
+function renderGameOverOverlay(){
+  const pal = scenePalette(SCENE);
+
+  noStroke();
+  fill(0, 200);
+  rect(0,0,width,height);
+
+  fill(pal.ui[0], pal.ui[1], pal.ui[2]);
+  textAlign(CENTER, CENTER);
+  textSize(56);
+  text("PERDISTE", width*0.5, height*0.42);
+
+  textSize(18);
+  fill(255, 220);
+  text("Reiniciando...", width*0.5, height*0.50);
+
+  const sec = ceil(restartTimer/60);
+  fill(255, 180);
+  text(`${sec}`, width*0.5, height*0.56);
+}
+
+function drawGlitchOverlay(a){
+  const lines = 10 + floor(a*30);
+  strokeWeight(2);
+  for(let i=0;i<lines;i++){
+    const y = random(height);
+    stroke(255, 255, 255, random(15, 60)*a);
+    line(0, y, width, y + random(-5,5));
+  }
+}
+
+/* =========================
+   RESTART
+========================= */
+function hardRestart(){
+  gameOver=false;
+  hp=100;
+  score=0;
+  combo=0; comboTimer=0;
+  bullets.length=0;
+  enemies.length=0;
+  pickups.length=0;
+
+  buildLevel(SCENE);
+
+  player.x = camX + 120;
+  player.y = groundY()-220;
+  player.vx = 0; player.vy = 0;
+
+  spawnPickups(3);
+  spawnEnemies(SCENE>=2 ? 3 : 1);
+
+  sceneFlash=1;
+  sceneTitleTimer=70;
+  shake=6;
+  glitchAmt=0;
+}
+
+/* =========================
+   HELPERS
+========================= */
+function aabb(a,b){
+  return (
+    a.x < b.x + b.w &&
+    a.x + a.w > b.x &&
+    a.y < b.y + b.h &&
+    a.y + a.h > b.y
+  );
+}
+
+function spawnEnemies(n){
+  for(let i=0;i<n;i++){
+    if(enemies.length>=MAX_ENEMIES) return;
+    const x = camX + width + random(120, 360);
+    enemies.push(new Enemy(constrain(x, 200, worldW-200)));
+  }
+}
+
+function spawnPickups(n){
+  for(let i=0;i<n;i++){
+    if(pickups.length>=MAX_PICKUPS) return;
+    const x = camX + random(200, width-200);
+    const y = groundY() - random(140, 320);
+    pickups.push(new Pickup(constrain(x, 120, worldW-120), y));
+  }
+}
+
+function spawnFootDust(x,y,n){
+  for(let i=0;i<n;i++){
+    if(particles.length>=MAX_PARTICLES) return;
+    particles.push(new Dust(x+random(-10,10), y+random(-6,6)));
+  }
+}
+
+function spawnHit(x,y){
+  for(let i=0;i<16;i++){
+    if(particles.length>=MAX_PARTICLES) return;
+    particles.push(new Spark(x,y,false));
+  }
+}
+
+function spawnPickupBurst(x,y){
+  for(let i=0;i<12;i++){
+    if(particles.length>=MAX_PARTICLES) return;
+    particles.push(new PickupSpark(x,y));
+  }
+}
+
+function sceneName(s){
+  if(s===0) return "BOSQUE";
+  if(s===1) return "RUINAS";
+  if(s===2) return "CUEVA";
+  return "BOSS ZONE";
+}
+
+function scenePalette(s){
+  if(s===0) return { bg:[10,16,14], ui:[110,255,170], enemy:[255,130,140], pick:[160,255,210], ground:[18,28,22] };
+  if(s===1) return { bg:[12,12,16], ui:[120,190,255], enemy:[255,170,90],  pick:[170,240,255], ground:[22,22,28] };
+  if(s===2) return { bg:[12,8,14],  ui:[200,120,255], enemy:[255,110,180], pick:[130,220,255], ground:[26,18,30] };
+  return         { bg:[14,8,8],   ui:[255,70,90],    enemy:[255,190,60],  pick:[180,255,140], ground:[30,16,16] };
+}
+
+function nearestEnemyInRange(x,y,range){
+  let best=null, bestD=range;
+  for(const e of enemies){
+    const d = dist(x,y, e.x, e.y);
+    if(d < bestD){ bestD=d; best=e; }
+  }
+  return best;
+}
+
+/* =========================
+   KEYS (para demo)
+   1..4 fuerza bioma (y también lo puedes mandar desde Strudel)
+   A toggles AUTO_SCENE
+========================= */
+function keyPressed(){
+  if(key==='1'){ onSceneChange(SCENE,0); SCENE=0; }
+  if(key==='2'){ onSceneChange(SCENE,1); SCENE=1; }
+  if(key==='3'){ onSceneChange(SCENE,2); SCENE=2; }
+  if(key==='4'){ onSceneChange(SCENE,3); SCENE=3; }
+  if(key==='A' || key==='a'){ AUTO_SCENE = !AUTO_SCENE; }
+}
+
+function windowResized(){
+  resizeCanvas(windowWidth, windowHeight);
+  buildLevel(SCENE);
+}
+
+/* =========================
+   CLASSES
+========================= */
+class Platform{
+  constructor(x,y,w,h){
+    this.x=x; this.y=y; this.w=w; this.h=h;
+    // generar decoraciones aleatorias (semilla fija por posición)
+    this.seed = x*13 + y*7;
+  }
+  draw(pal){
+    randomSeed(this.seed);
+    const isGround = this.h > 50;
+
+    // ---- cuerpo de la plataforma ----
+    noStroke();
+    // gradiente sutil: más claro arriba
+    fill(pal.ground[0]+8, pal.ground[1]+8, pal.ground[2]+8, 230);
+    rect(this.x, this.y, this.w, this.h*0.4, 6, 6, 0, 0);
+    fill(pal.ground[0], pal.ground[1], pal.ground[2], 220);
+    rect(this.x, this.y+this.h*0.4, this.w, this.h*0.6, 0, 0, 8, 8);
+
+    // ---- borde superior con color del bioma ----
+    stroke(pal.ui[0], pal.ui[1], pal.ui[2], 45);
+    strokeWeight(2);
+    line(this.x, this.y, this.x+this.w, this.y);
+
+    // ---- DECORACIONES POR BIOMA ----
+    noStroke();
+    if(SCENE===0){
+      // BOSQUE: brotes de hierba
+      const grassCount = floor(this.w / 16);
+      for(let i=0; i<grassCount; i++){
+        const gx = this.x + 8 + i*16 + random(-4,4);
+        const gh = random(6,14);
+        const sway = sin(frameCount*0.04 + gx*0.1)*2;
+        stroke(70+random(40), 180+random(60), 90+random(40), 160);
+        strokeWeight(1.5);
+        line(gx, this.y, gx+sway, this.y-gh);
+        line(gx+5, this.y, gx+5+sway*0.7, this.y-gh*0.7);
+      }
+      // flores pequeñas
+      noStroke();
+      for(let i=0; i<grassCount/3; i++){
+        const fx = this.x + random(this.w);
+        fill(255, 200+random(55), 100+random(50), 140);
+        circle(fx, this.y-random(2,8), 3);
+      }
+    }
+    if(SCENE===1){
+      // RUINAS: grietas y ladrillos
+      stroke(pal.ui[0], pal.ui[1], pal.ui[2], 20);
+      strokeWeight(1);
+      const crackCount = floor(this.w / 40);
+      for(let i=0; i<crackCount; i++){
+        const cx = this.x + random(this.w);
+        const cy = this.y + random(this.h*0.8);
+        line(cx, cy, cx+random(-12,12), cy+random(5,15));
+      }
+      // líneas de ladrillos
+      noStroke();
+      fill(pal.ground[0]+15, pal.ground[1]+15, pal.ground[2]+15, 40);
+      for(let row=0; row<floor(this.h/10); row++){
+        const ly = this.y + row*10;
+        const off = (row%2)*15;
+        for(let col=0; col<floor(this.w/30); col++){
+          rect(this.x+col*30+off+1, ly+1, 28, 8, 1);
+        }
+      }
+    }
+    if(SCENE===2){
+      // CUEVA: cristales brillantes
+      for(let i=0; i<floor(this.w/60); i++){
+        const cx = this.x + 30 + i*60 + random(-15,15);
+        const ch = random(10,22);
+        const cw = random(4,8);
+        fill(pal.ui[0], pal.ui[1], pal.ui[2], 60+sin(frameCount*0.06+i)*30);
+        triangle(cx-cw, this.y, cx, this.y-ch, cx+cw, this.y);
+        // brillo
+        fill(255,255,255, 30+sin(frameCount*0.08+i*2)*20);
+        circle(cx, this.y-ch+3, 4);
+      }
+    }
+    if(SCENE===3){
+      // BOSS ZONE: bordes de lava / brasas
+      const glow = sin(frameCount*0.06)*0.3+0.7;
+      // borde inferior incandescente
+      fill(255, 60, 20, 35*glow);
+      rect(this.x, this.y+this.h-4, this.w, 6, 0,0,4,4);
+      // borde superior rojo
+      stroke(255, 40, 20, 50*glow);
+      strokeWeight(2);
+      line(this.x, this.y, this.x+this.w, this.y);
+      // brasas flotando
+      noStroke();
+      for(let i=0; i<floor(this.w/50); i++){
+        const ex = this.x + random(this.w);
+        const ey = this.y - random(4,16);
+        fill(255, 100+random(100), 20, 80+sin(frameCount*0.1+i)*40);
+        circle(ex, ey + sin(frameCount*0.08+i)*3, random(2,4));
+      }
+    }
+    randomSeed(frameCount); // restaurar aleatoriedad
+  }
+}
+
+class Player{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.w=44; this.h=78;
+    this.vx=0; this.vy=0;
+    this.onGround=false;
+    this.face=1;
+    this.walk=0;
+    this.breathe=0;
+    this.recoil=0;
+    this.cool=0;
+  }
+
+  runPulse(){
+    const target = (SCENE===3? 4.2 : SCENE===2? 3.6 : SCENE===1? 3.0 : 2.4);
+    this.vx = lerp(this.vx, target, 0.22);
+  }
+
+  tryJump(fromAudio=false){
+    if(this.onGround){
+      this.vy = -(SCENE===3? 12.5 : 11.5);
+      this.onGround=false;
+      if(fromAudio) this.vx += 0.7;
+    }
+  }
+
+  shoot(){
+    if(this.cool>0) return;
+    if(bullets.length>=MAX_BULLETS) return;
+
+    this.cool=10;
+    this.recoil=1;
+
+    const target = nearestEnemyInRange(this.x, this.y, 900);
+    if(target) this.face = (target.x > this.x) ? 1 : -1;
+
+    const bx = this.x + this.w*0.5 + this.face*26;
+    const by = this.y + 30;
+    bullets.push(new Bullet(bx, by, this.face));
+  }
+
+  update(plats){
+    this.cool=max(0, this.cool-1);
+
+    this.walk += abs(this.vx)*0.06 + (trigHat*0.25);
+    this.breathe += 0.04;
+    this.recoil *= 0.78;
+
+    const gravity = (SCENE===3? 0.75 : 0.70);
+    this.vy += gravity;
+
+    this.vx *= (this.onGround ? 0.88 : 0.95);
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    this.x = constrain(this.x, 40, worldW - 40);
+
+    this.onGround=false;
+    for(const p of plats){
+      if(this.vy >= 0){
+        const feetY = this.y + this.h;
+        const prevFeetY = (this.y - this.vy) + this.h;
+        const withinX = (this.x + this.w*0.2 < p.x + p.w) && (this.x + this.w*0.8 > p.x);
+        const crossed = (prevFeetY <= p.y) && (feetY >= p.y);
+        if(withinX && crossed){
+          this.y = p.y - this.h;
+          this.vy = 0;
+          this.onGround = true;
+        }
+      }
+    }
+
+    if(abs(this.vx) > 0.15) this.face = (this.vx>0) ? 1 : -1;
+  }
+
+  draw(pal){
+    const bob = sin(this.breathe)*2.2 + (this.onGround ? 0 : 2);
+    const legSwing = sin(this.walk)*8 * (this.onGround ? 1 : 0.2);
+    const armSwing = cos(this.walk)*6 * (this.onGround ? 1 : 0.3);
+
+    push();
+    translate(this.x + this.w*0.5, this.y + this.h*0.5 + bob);
+
+    // ---- AURA / GLOW ----
+    noStroke();
+    // glow exterior animado
+    const glowPulse = sin(this.breathe*1.5)*0.3+0.7;
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], 8*glowPulse + trigMelody*40);
+    ellipse(0, 4, 120*glowPulse, 80*glowPulse);
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], 14*glowPulse + trigMelody*30);
+    ellipse(0, 6, 70, 50);
+
+    // ---- SOMBRA ----
+    fill(0, 40);
+    ellipse(0, 38, 36, 8);
+
+    // ---- CABEZA ----
+    stroke(pal.ui[0], pal.ui[1], pal.ui[2], 100);
+    strokeWeight(2);
+    fill(15, 18, 22, 220);
+    ellipse(0, -26, 28, 28);
+    // casco / pelo según bioma
+    noStroke();
+    if(SCENE===0){
+      // gorra verde
+      fill(60, 180, 90, 180);
+      arc(0, -32, 28, 16, PI, 0);
+      rect(-16, -33, 32, 4, 2);
+    } else if(SCENE===1){
+      // capucha azul
+      fill(80, 140, 220, 150);
+      arc(0, -30, 30, 22, PI+0.3, -0.3);
+    } else if(SCENE===2){
+      // casco minero con lámpara
+      fill(180, 150, 50, 180);
+      arc(0, -32, 28, 14, PI, 0);
+      fill(255, 255, 150, 150+sin(frameCount*0.1)*50);
+      circle(0, -38, 6);
+    } else {
+      // cuernos de demonio slayer
+      fill(255, 60, 40, 180);
+      triangle(-12, -36, -8, -32, -14, -28);
+      triangle(12, -36, 8, -32, 14, -28);
+    }
+
+    // ---- OJOS ----
+    fill(255);
+    const ex = this.face * 4;
+    circle(ex-3, -28, 4);
+    circle(ex+4, -28, 4);
+    // pupilas
+    fill(pal.ui[0], pal.ui[1], pal.ui[2]);
+    circle(ex-3+this.face, -28, 2);
+    circle(ex+4+this.face, -28, 2);
+
+    // ---- CUERPO (armadura) ----
+    stroke(pal.ui[0], pal.ui[1], pal.ui[2], 80);
+    strokeWeight(2);
+    fill(20, 24, 30, 200);
+    rectMode(CENTER);
+    rect(0, 2, 24, 34, 8);
+    // detalle de armadura
+    noStroke();
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], 30);
+    rect(0, -4, 18, 8, 3);
+
+    // ---- PIERNAS ----
+    strokeWeight(4);
+    stroke(180, 180, 190, 180);
+    // bota izq
+    line(-6, 18, -10 - legSwing*0.2, 36);
+    noStroke(); fill(60,60,70,200);
+    ellipse(-10-legSwing*0.2, 38, 10, 6);
+    // bota der
+    stroke(180,180,190,180); strokeWeight(4);
+    line(6, 18, 10 + legSwing*0.2, 36);
+    noStroke(); fill(60,60,70,200);
+    ellipse(10+legSwing*0.2, 38, 10, 6);
+
+    // ---- BRAZOS ----
+    strokeWeight(3);
+    stroke(180,180,190,160);
+    line(-12, -2, -18, 12 + armSwing*0.2);
+    line(12, -2, 18, 12 - armSwing*0.2);
+
+    // ---- ARMA ----
+    const gunSide = this.face;
+    const gx = gunSide * 18;
+    const gy = 0;
+
+    // cañón del arma con glow
+    stroke(pal.ui[0], pal.ui[1], pal.ui[2], 220);
+    strokeWeight(5);
+    line(gx, gy, gx + gunSide*(20 + this.recoil*6), gy - 2);
+
+    noStroke();
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], 200);
+    rect(gx + gunSide*18, gy - 2, 18, 6, 2);
+
+    // disparo: muzzle flash
+    if(this.recoil > 0.15){
+      fill(255, 255, 200, 180*this.recoil);
+      ellipse(gx + gunSide*40, gy - 2, 12+20*this.recoil, 8+14*this.recoil);
+      fill(pal.ui[0], pal.ui[1], pal.ui[2], 120*this.recoil);
+      ellipse(gx + gunSide*44, gy - 2, 6+10*this.recoil, 4+8*this.recoil);
+    }
+
+    // ---- ESCUDO DE ENERGÍA (cuando tiene más de 70 HP) ----
+    if(hp > 70){
+      noFill();
+      stroke(pal.ui[0], pal.ui[1], pal.ui[2], 20+sin(frameCount*0.06)*10);
+      strokeWeight(1.5);
+      ellipse(0, 0, 52+sin(frameCount*0.08)*4, 70+cos(frameCount*0.06)*4);
+    }
+
+    pop();
+  }
+}
+
+class Enemy{
+  constructor(x){
+    this.w=46; this.h=70;
+    this.x=x;
+    this.y=groundY()-this.h;
+    this.vx=-random(0.8, 1.4);
+    this.vy=0;
+    this.onGround=true;
+    this.phase=random(1000);
+  }
+
+  update(scene, player, plats){
+    const speed = (scene===3? 2.1 : scene===2? 1.7 : scene===1? 1.35 : 1.1);
+    const dir = (player.x > this.x) ? 1 : -1;
+
+    const wob = sin((frameCount+this.phase)*0.05) * 0.3;
+    this.vx = lerp(this.vx, dir*speed, 0.03) + wob;
+
+    this.vy += (scene===3? 0.78 : 0.70);
+    this.x += this.vx;
+    this.y += this.vy;
+
+    this.onGround=false;
+    for(const p of plats){
+      if(this.vy >= 0){
+        const feetY = this.y + this.h;
+        const prevFeetY = (this.y - this.vy) + this.h;
+        const withinX = (this.x + this.w*0.2 < p.x + p.w) && (this.x + this.w*0.8 > p.x);
+        const crossed = (prevFeetY <= p.y) && (feetY >= p.y);
+        if(withinX && crossed){
+          this.y = p.y - this.h;
+          this.vy = 0;
+          this.onGround = true;
+        }
+      }
+    }
+
+    if(scene>=2 && this.onGround && random() < 0.006){
+      this.vy = -10.5;
+      this.onGround = false;
+    }
+  }
+
+  draw(pal, player){
+    const face = (player.x > this.x) ? 1 : -1;
+    const bob = sin((frameCount+this.phase)*0.08) * 2;
+    const breathe = sin((frameCount+this.phase)*0.04) * 1.5;
+
+    push();
+    translate(this.x + this.w*0.5, this.y + this.h*0.5 + bob);
+
+    // ---- GLOW ENEMIGO ----
+    noStroke();
+    fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 12);
+    ellipse(0, 10, 80, 50);
+
+    // ---- SOMBRA ----
+    fill(0, 30);
+    ellipse(0, 40, 30, 8);
+
+    if(SCENE===0){
+      // ---- BOSQUE: lobo/bestia ----
+      // cuerpo
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 180);
+      strokeWeight(2);
+      fill(30, 20, 25, 200);
+      // cuerpo horizontal (cuadrúpedo)
+      ellipse(0, 8, 40, 28);
+      // cabeza
+      fill(40, 25, 30, 220);
+      ellipse(face*18, -2, 22, 20);
+      // orejas puntiagudas
+      noStroke();
+      fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 150);
+      triangle(face*14-4, -12, face*14, -22, face*14+5, -10);
+      triangle(face*22-4, -10, face*22, -20, face*22+5, -8);
+      // ojos rojos
+      fill(255, 80, 80, 230);
+      circle(face*20, -4, 4);
+      circle(face*14, -4, 3);
+      // patas
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 140);
+      strokeWeight(3);
+      line(-12, 20, -14, 38); line(-4, 20, -6, 38);
+      line(10, 20, 12, 38); line(18, 20, 16, 38);
+      // cola
+      noFill(); strokeWeight(2);
+      bezier(-face*20, 4, -face*28, -4, -face*32, 8, -face*28, 14);
+
+    } else if(SCENE===1){
+      // ---- RUINAS: esqueleto/espectro ----
+      // cuerpo esquelético
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 200);
+      strokeWeight(2);
+      fill(20, 20, 28, 180);
+      rectMode(CENTER);
+      rect(0, 8, 20, 36, 6);
+      // costillas
+      noFill();
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 80);
+      strokeWeight(1);
+      for(let r=0; r<4; r++) line(-8, r*7-4, 8, r*7-4);
+      // cráneo
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 200);
+      strokeWeight(2);
+      fill(25, 25, 35, 200);
+      ellipse(0, -18, 24, 24);
+      // cuencas
+      noStroke();
+      fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 200);
+      ellipse(face*3-4, -20, 6, 7);
+      ellipse(face*3+4, -20, 6, 7);
+      // boca
+      fill(0);
+      rect(0, -12, 10, 3, 1);
+      // espada oxidada
+      stroke(180, 160, 120, 170); strokeWeight(3);
+      line(face*16, -6, face*30, 16);
+      noStroke(); fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 160);
+      ellipse(face*30, 16, 10, 8);
+      // piernas huesos
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 140);
+      strokeWeight(3);
+      line(-5, 26, -8, 44); line(5, 26, 8, 44);
+
+    } else if(SCENE===2){
+      // ---- CUEVA: murciélago/criatura voladora ----
+      const wingFlap = sin((frameCount+this.phase)*0.15)*20;
+      // cuerpo
+      noStroke();
+      fill(40, 20, 55, 220);
+      ellipse(0, 0, 22, 26);
+      // alas membranosas
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 140);
+      strokeWeight(1.5);
+      fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 40);
+      // ala izq
+      beginShape();
+      vertex(-8, -4);
+      vertex(-28-wingFlap*0.3, -16+wingFlap*0.5);
+      vertex(-32-wingFlap*0.2, 0);
+      vertex(-22, 8);
+      vertex(-8, 4);
+      endShape(CLOSE);
+      // ala der
+      beginShape();
+      vertex(8, -4);
+      vertex(28+wingFlap*0.3, -16+wingFlap*0.5);
+      vertex(32+wingFlap*0.2, 0);
+      vertex(22, 8);
+      vertex(8, 4);
+      endShape(CLOSE);
+      // ojos brillantes
+      noStroke();
+      fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 230);
+      circle(face*3-3, -4, 5);
+      circle(face*3+3, -4, 5);
+      // colmillos
+      fill(255, 220);
+      triangle(-2, 6, 0, 12, 2, 6);
+      triangle(3, 6, 5, 11, 7, 6);
+      // orejas
+      fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 120);
+      triangle(-6, -12, -3, -22, 0, -10);
+      triangle(6, -12, 3, -22, 0, -10);
+
+    } else {
+      // ---- BOSS ZONE: demonio/golem de fuego ----
+      const fireFlicker = sin(frameCount*0.12+this.phase)*4;
+      // aura de fuego
+      noStroke();
+      fill(255, 60, 20, 25+fireFlicker*3);
+      ellipse(0, 0, 60+fireFlicker, 70+fireFlicker);
+      // cuerpo masivo
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 220);
+      strokeWeight(3);
+      fill(35, 12, 12, 230);
+      rectMode(CENTER);
+      rect(0, 8, 30, 42, 8);
+      // grietas de lava en el cuerpo
+      noStroke();
+      fill(255, 100, 30, 100+fireFlicker*10);
+      rect(-4, 2, 3, 12, 1);
+      rect(5, -2, 2, 16, 1);
+      rect(-2, 16, 8, 3, 1);
+      // cabeza con cuernos
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 220);
+      strokeWeight(2);
+      fill(40, 15, 15, 230);
+      ellipse(0, -20, 28, 28);
+      // cuernos
+      noStroke();
+      fill(pal.enemy[0], pal.enemy[1], pal.enemy[2], 200);
+      triangle(-12, -28, -6, -22, -16, -22);
+      triangle(12, -28, 6, -22, 16, -22);
+      // ojos de fuego
+      fill(255, 200, 40, 230);
+      circle(face*4-4, -22, 5);
+      circle(face*4+4, -22, 5);
+      fill(255, 60, 20);
+      circle(face*4-4, -22, 2.5);
+      circle(face*4+4, -22, 2.5);
+      // piernas gruesas
+      stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], 180);
+      strokeWeight(5);
+      line(-8, 28, -12, 44); line(8, 28, 12, 44);
+      // llamas encima
+      noStroke();
+      for(let f=0; f<3; f++){
+        const fx = random(-10,10);
+        fill(255, 120+random(80), 20, 60+random(40));
+        ellipse(fx, -34-fireFlicker-random(6), 8+random(4), 10+random(6));
+      }
+    }
+
+    pop();
+  }
+}
+
+class Bullet{
+  constructor(x,y,dir){
+    this.x=x; this.y=y;
+    this.w=12; this.h=6;
+    this.vx = dir * 12.5;
+    this.dead=false;
+    this.life=70;
+    this.trail=[];
+  }
+  update(){
+    this.trail.push({x:this.x, y:this.y});
+    if(this.trail.length > 6) this.trail.shift();
+    this.x += this.vx;
+    this.life--;
+    if(this.life<=0) this.dead=true;
+    if(this.x < -200 || this.x > worldW+200) this.dead=true;
+  }
+  draw(pal){
+    // trail
+    noStroke();
+    for(let i=0; i<this.trail.length; i++){
+      const a = (i/this.trail.length)*80;
+      const s = (i/this.trail.length)*4+2;
+      fill(pal.ui[0], pal.ui[1], pal.ui[2], a);
+      ellipse(this.trail[i].x+this.w*0.5, this.trail[i].y+this.h*0.5, s, s*0.6);
+    }
+    // bullet body
+    fill(pal.ui[0], pal.ui[1], pal.ui[2], 230);
+    ellipse(this.x+this.w*0.5, this.y+this.h*0.5, this.w, this.h);
+    // bright core
+    fill(255, 255, 255, 160);
+    ellipse(this.x+this.w*0.5, this.y+this.h*0.5, 6, 3);
+  }
+}
+
+class Pickup{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.w=22; this.h=22;
+    this.t=random(1000);
+  }
+  update(){ this.t += 0.05; }
+  draw(pal){
+    const floatY = sin(this.t)*5;
+    const pulse = sin(this.t*2)*0.3+0.7;
+    const cx = this.x + this.w*0.5;
+    const cy = this.y + this.h*0.5 + floatY;
+
+    push();
+    translate(cx, cy);
+
+    // glow exterior
+    noStroke();
+    fill(pal.pick[0], pal.pick[1], pal.pick[2], 20*pulse);
+    circle(0, 0, 40);
+    fill(pal.pick[0], pal.pick[1], pal.pick[2], 35*pulse);
+    circle(0, 0, 26);
+
+    // ---- CORAZÓN (health pickup) ----
+    noStroke();
+    fill(pal.pick[0], pal.pick[1], pal.pick[2], 180+sin(this.t*2)*40);
+    // dibujar corazón con bezier
+    beginShape();
+    vertex(0, 4);
+    bezierVertex(-8, -4, -12, -10, -6, -12);
+    bezierVertex(-2, -14, 0, -10, 0, -6);
+    bezierVertex(0, -10, 2, -14, 6, -12);
+    bezierVertex(12, -10, 8, -4, 0, 4);
+    endShape(CLOSE);
+
+    // brillo interior
+    fill(255, 255, 255, 60*pulse);
+    circle(-3, -8, 4);
+
+    // cruz de vida (solo si biome 0 o 1)
+    if(SCENE <= 1){
+      fill(255, 255, 255, 50);
+      rect(-1, -3, 2, 6, 1);
+      rect(-3, -1, 6, 2, 1);
+    }
+
+    // partículas orbitando
+    noStroke();
+    for(let i=0; i<3; i++){
+      const angle = this.t*1.5 + i*TWO_PI/3;
+      const orbR = 14+sin(this.t+i)*3;
+      fill(pal.pick[0], pal.pick[1], pal.pick[2], 80+sin(this.t+i)*40);
+      circle(cos(angle)*orbR, sin(angle)*orbR, 3);
+    }
+
+    pop();
+  }
+}
+
+class Dust{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.vx=random(-1.2,1.2);
+    this.vy=random(-2.0,-0.4);
+    this.life=22;
+    this.dead=false;
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.vx*=0.94; this.vy*=0.92; this.life--; if(this.life<=0) this.dead=true; }
+  draw(pal){ noStroke(); fill(255,255,255, this.life*6); circle(this.x, this.y, 4); }
+}
+
+class Spark{
+  constructor(x,y,big){
+    this.x=x; this.y=y;
+    const a=random(TWO_PI), sp=random(big?2:1, big?9:6);
+    this.vx=cos(a)*sp; this.vy=sin(a)*sp;
+    this.life=big? 42 : 24;
+    this.dead=false;
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.vx*=0.90; this.vy*=0.90; this.life--; if(this.life<=0) this.dead=true; }
+  draw(pal){ stroke(pal.enemy[0], pal.enemy[1], pal.enemy[2], this.life*6); strokeWeight(2); point(this.x,this.y); }
+}
+
+class PickupSpark{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    const a=random(TWO_PI), sp=random(0.8,5);
+    this.vx=cos(a)*sp; this.vy=sin(a)*sp;
+    this.life=22; this.dead=false;
+  }
+  update(){ this.x+=this.vx; this.y+=this.vy; this.vx*=0.90; this.vy*=0.90; this.life--; if(this.life<=0) this.dead=true; }
+  draw(pal){ stroke(pal.pick[0], pal.pick[1], pal.pick[2], this.life*7); strokeWeight(2); point(this.x,this.y); }
+}
+
+class RainDrop{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.vy=random(7, 14);
+    this.len=random(8,16);
+    this.life=25;
+    this.dead=false;
+  }
+  update(){ this.y += this.vy; this.life--; if(this.life<=0 || this.y>height) this.dead=true; }
+  draw(pal){
+    // color según bioma: blanco normal, rojo en boss
+    if(SCENE===3){
+      stroke(255, 80, 40, 30); 
+    } else if(SCENE===2){
+      stroke(150, 180, 255, 25);
+    } else {
+      stroke(255,255,255, 22);
+    }
+    strokeWeight(1.5);
+    line(this.x, this.y, this.x-1, this.y+this.len);
+  }
+}
+
+class Mote{
+  constructor(x,y){
+    this.x=x; this.y=y;
+    this.vx=random(-0.3,0.3);
+    this.vy=random(-0.3,0.3);
+    this.life=80;
+    this.size=random(1.5,3.5);
+    this.dead=false;
+  }
+  update(){ this.x += this.vx + sin(frameCount*0.02+this.x*0.01)*0.3; this.y += this.vy; this.life--; if(this.life<=0) this.dead=true; }
+  draw(pal){
+    noStroke();
+    const a = this.life*0.4;
+    if(SCENE===0){
+      // luciérnagas verdes pulsantes
+      fill(120, 255, 140, a + sin(frameCount*0.1+this.x)*a*0.5);
+    } else if(SCENE===1){
+      // polvo azulado
+      fill(140, 180, 255, a*0.6);
+    } else if(SCENE===3){
+      // ascuas naranjas
+      fill(255, 140, 40, a);
+    } else {
+      fill(255,255,255, a*0.5);
+    }
+    circle(this.x, this.y, this.size);
+  }
+}
+</script>
+</body>
+</html>
