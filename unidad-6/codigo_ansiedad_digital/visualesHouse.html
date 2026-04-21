@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ansiedad Digital | El Astronauta</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; background: #010409; font-family: 'Courier New', Courier, monospace; }
+        canvas { display: block; }
+        #status { position: absolute; top: 10px; left: 10px; color: #00ffff; z-index: 100; font-size: 14px; font-weight: bold; text-shadow: 0 0 5px #00aaff; }
+    </style>
+</head>
+<body>
+<div id="status">◆ RECEPCIÓN DE TELEMETRÍA (PUERTO 3000)... ◆</div>
+
+<script>
+// ----- Conexión al OSCBridge -----
+let levels = {
+    SYNTH_PAD: 0, BASS_DRIVE: 0, KICK_BEAT: 0, HIHAT_SWARM: 0,
+    DATA_NOISE: 0, GLITCH_STORM: 0, VOICE_CHOP: 0, ALARM_STATE: 0
+};
+let triggers = {
+    PAD: 0, BASS: 0, KICK: 0, HIHAT: 0, DATA: 0, GLITCH: 0, VOICE: 0, ALARM: 0
+};
+
+const ws = new WebSocket("ws://127.0.0.1:3000");
+
+ws.onopen = () => {
+    document.getElementById('status').innerText = '◆ TELEMETRÍA RECIBIDA ◆';
+    setTimeout(() => { document.getElementById('status').style.opacity = '0.1'; }, 3000);
+};
+
+ws.onclose = () => {
+    document.getElementById('status').innerText = '⚠ ERROR CRÍTICO: SEÑAL DE RADIO PERDIDA ⚠';
+    document.getElementById('status').style.opacity = '1';
+    document.getElementById('status').style.color = '#ff3333';
+};
+
+ws.onmessage = (msg) => {
+    try {
+        let packet = JSON.parse(msg.data);
+        if (packet.address === '/levels') {
+            levels = { ...levels, ...packet.levels };
+        } else if (packet.address === '/trigger') {
+            triggers[packet.channel] = 1.0;
+        }
+    } catch(e) {}
+};
+
+// ----- Sketch p5.js: El Viaje del Astronauta (2D) -----
+
+let bgImages = [];
+let matrixChars = "010203040506070809ABCDEFGHIJKLMNOPQRSTUVWXYZ<>{}[]$#".split("");
+let matrixRain = [];
+let errorPopups = [];
+
+function preload() {
+    // Cargamos los 4 fondos generados con IA para las 4 etapas de ansiedad
+    // (Asegurándonos de que ya estén en la carpeta public/img)
+    bgImages[0] = loadImage('img/astro_0.png');
+    bgImages[1] = loadImage('img/astro_1.png');
+    bgImages[2] = loadImage('img/astro_2.png');
+    bgImages[3] = loadImage('img/astro_3.png');
+}
+
+function setup() {
+    createCanvas(windowWidth, windowHeight);
+    imageMode(CENTER);
+    rectMode(CENTER);
+    
+    // Iniciar lluvia de código matrix (HIHAT_SWARM)
+    for (let i = 0; i < 300; i++) {
+        matrixRain.push({
+            x: random(width), 
+            y: random(-height * 2, 0), 
+            speed: random(5, 15), 
+            char: random(matrixChars)
+        });
+    }
+}
+
+function draw() {
+    // 1. Decadencia de Triggers
+    for(let k in triggers) triggers[k] *= 0.85; 
+    
+    background(5); // Fondo oscuro en caso de bordes
+    
+    // 2. Transición del Entorno (SYNTH_PAD define la fase de locura del Astronauta del 0 al 3)
+    let currentLvl = min(3, max(0, round(levels.SYNTH_PAD))); 
+    let currentImage = bgImages[currentLvl];
+
+    // 3. Físicas de Cámara: Sismos espaciales por BASS_DRIVE y KICK_BEAT
+    let shakeX = (levels.BASS_DRIVE * 10 * triggers.BASS) + (levels.KICK_BEAT * 5 * triggers.KICK);
+    let shakeY = (levels.BASS_DRIVE * 10 * triggers.BASS) + (levels.KICK_BEAT * 5 * triggers.KICK);
+    // El KICK simula los latidos cardíacos asfixiantes (Zoom in / out)
+    let kickZoom = triggers.KICK * 0.05 * levels.KICK_BEAT;
+
+    push();
+    translate(width/2 + random(-shakeX, shakeX), height/2 + random(-shakeY, shakeY));
+    
+    // Escalado Responsivo tipo "Cover"
+    let aspect = currentImage.width / currentImage.height;
+    let drawW = width * (1 + kickZoom);
+    let drawH = width / aspect;
+    if (drawH < height) {
+        drawH = height * (1 + kickZoom);
+        drawW = height * aspect;
+    }
+    
+    // 4. Asfixia Sensorial (ALARM_STATE)
+    // En lugar del flash rojo estroboscópico, removemos toda la luz dando un filtro macabro y frío.
+    if (levels.ALARM_STATE > 1) {
+        // Tinte azul frío oscuro y pérdida de saturación severa
+        tint(80, 130, 200, 255); 
+    } else {
+        noTint();
+    }
+    
+    image(currentImage, 0, 0, drawW, drawH);
+    pop();
+
+    // 5. HIHAT SWARM (Lluvia de Código)
+    if (levels.HIHAT_SWARM > 0) {
+        fill(0, 255, 255, 180); // Cyan
+        textFont('Courier New');
+        textSize(14 + levels.HIHAT_SWARM * 2);
+        
+        let rainSpeedMultiplier = 1 + triggers.HIHAT * 2;
+        let rainDensity = min(matrixRain.length, levels.HIHAT_SWARM * 100);
+        
+        for (let i = 0; i < rainDensity; i++) {
+            let m = matrixRain[i];
+            m.y += m.speed * rainSpeedMultiplier;
+            if (m.y > height) m.y = random(-200, 0);
+            if (random() < 0.1) m.char = random(matrixChars); // Parpadeo binario
+            
+            // Falso efecto de resplandor
+            if(random()>0.9) text(m.char, m.x, m.y);
+            text(m.char, m.x, m.y);
+        }
+    }
+
+    // 6. DATA NOISE (Ventanas Pop-Up de Error de Sistema Ficticias)
+    if (triggers.DATA > 0.8 && errorPopups.length < (levels.DATA_NOISE * 5)) {
+        errorPopups.push({
+            x: random(width*0.2, width*0.8),
+            y: random(height*0.2, height*0.8),
+            w: random(250, 400),
+            h: random(100, 150),
+            alpha: 255,
+            errorCode: "0x0" + floor(random(1000,9999))
+        });
+    }
+
+    for (let i = errorPopups.length - 1; i >= 0; i--) {
+        let ep = errorPopups[i];
+        ep.alpha -= 2; // Desvanecimiento de memoria
+        if (ep.alpha <= 0) {
+            errorPopups.splice(i, 1);
+            continue;
+        }
+        
+        push();
+        translate(ep.x, ep.y);
+        rectMode(CENTER);
+        stroke(200, ep.alpha);
+        strokeWeight(1);
+        
+        // Ventana principal
+        fill(10, 10, 30, ep.alpha);
+        rect(0, 0, ep.w, ep.h);
+        
+        // Barra Azul clásica de ventanas
+        fill(0, 50, 150, ep.alpha);
+        rect(0, -ep.h/2 + 10, ep.w, 20); 
+        
+        // Texto
+        fill(255, ep.alpha);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textFont('Arial');
+        textSize(12);
+        text("SYSTEM WARNING", 0, -ep.h/2 + 10);
+        
+        fill(255, 50, 50, ep.alpha);
+        textSize(14);
+        text("CRITICAL OVERLOAD: " + ep.errorCode, 0, 0);
+        
+        // Glitch en la propia ventana de error
+        if (levels.GLITCH_STORM > 1) {
+             translate(random(-10, 10), random(-5,5));
+             fill(255, 255, 255, ep.alpha * 0.5);
+             text("CRITICAL OVERLOAD: " + ep.errorCode, 0, 0);
+        }
+        pop();
+    }
+
+    // 7. GLITCH STORM (Pérdida de señal estática - Tearing)
+    // Copiamos trozos del canvas y los pegamos desfasados
+    if (levels.GLITCH_STORM > 0 && random() < (triggers.GLITCH * 0.7 + 0.1)) {
+        let slices = levels.GLITCH_STORM * 2;
+        for(let i=0; i<slices; i++) {
+            let hSlice = random(10, 80);
+            let yPos = random(height);
+            let xOffset = random(-100, 100) * levels.GLITCH_STORM;
+            copy(0, yPos, width, hSlice, xOffset, yPos, width, hSlice);
+        }
+    }
+    
+    // 8. TEXTO PSICOLÓGICO DEL ALARM STATE
+    if (levels.ALARM_STATE > 0) {
+        fill(200, 230, 255, 30 + triggers.ALARM * 100);
+        textSize(60 + triggers.ALARM * 30);
+        textAlign(CENTER, CENTER);
+        textFont('Courier New');
+        // Letras extra espaciadas que generan zozobra
+        text("S I G N A L   L O S T", width/2, height/2 + (Math.sin(frameCount*0.1)*20));
+    }
+}
+
+function windowResized() { 
+    resizeCanvas(windowWidth, windowHeight); 
+}
+</script>
+</body>
+</html>
