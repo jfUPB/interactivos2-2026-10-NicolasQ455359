@@ -454,29 +454,6 @@ function windowResized() {
 
 ---
 
-## Actividad 04: Consolidación y metacognición (Reflect)
-
-**Evalúa la coherencia entre audio y visuales... ¿Se logra la experiencia deseada?**
-Lo logré satisfactoriamente. Tras varios traspiés intentando geometrías (donde yo mismo y los revisores sentían vacía la propuesta), este *rediseño narrativo/ilustrado* capturó a la perfección ese sentimiento "agotador y ahogante" sin dañar la fluidez cibernética experimental. Me complace altamente haber invertido mi tiempo corrigiendo el efecto de alarma rojo estroboscópico por un color gris pálido tenebroso "SIGNAL LOST", dándole el punto inmersivo y no uno invasivo a la retina.
 
 **Mi Diagrama de Sistema Final:**
-```mermaid
-flowchart TD
-    subgraph S_ROOT ["Sintaxis Audio (Strudel 5000)"]
-        SV["Variables Multipropósito 0 a 3"] --> SR["Motor Funcional Audio Tidal"]
-        SR -->|"Output .osc() Sync"| SE(("Paquete UDP de Estados"))
-    end
-    
-    subgraph B_ROOT ["Administrador Server (Node.js 3000)"]
-        SE -->|"Localhost WS In"| BT["Parser de Eventos y Broadcast JS"]
-        BT -->|"Variables Transformadas"| BW["Emisión en WS Cliente 3000"]
-    end
-    
-    subgraph V_ROOT ["Motor Frontal de Narración (p5.js CSS/HTML)"]
-        BW -->|"Señal JSON"| VP["Motor Selector del Astronauta y Canvas State"]
-        VP --> VC["Interposición de Lluvia Hacker, Zoom, Tearing y Popups"]
-    end
-```
-
-**Principales desafíos enfrentados:**
-Entender cómo sacrificar el "gran atractivo técnico" (como las tormentas de WebGL 3D) en favor del "gran funcionamiento técnico" (60 fps ininterrumpibles) sin que la premisa estética visual muriera en el intento. La flexibilidad fue mi gran activo al aprender a reconstruir sistemas visuales combinando métodos pre-renderizados en Canvas.
+<img width="424" height="949" alt="image" src="https://github.com/user-attachments/assets/95ded8f8-fc96-4ca1-9126-496cb76ce687" />
