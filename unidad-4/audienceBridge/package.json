@@ -1,0 +1,10 @@
+{
+  "name": "audience-bridge",
+  "version": "1.0.0",
+  "description": "Audience participation bridge for live coding visuals",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.16.0"
+  }
+}
