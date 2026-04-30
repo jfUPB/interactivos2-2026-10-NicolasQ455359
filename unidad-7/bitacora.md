@@ -220,4 +220,3 @@ function broadcastToVisuals(data) {
 3.  **Visuales:** Abrir `visualesHouse.html` en el navegador.
 
 ---
-*Bitácora Final - Proyecto Tormenta de Datos*
