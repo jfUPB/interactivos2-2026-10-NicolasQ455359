@@ -1,6 +1,5 @@
 # Unidad 7: Tormenta de Datos — Bitácora de Proyecto
 
-![Diseño de la App](../imagenes/app.png)
 
 ## Actividad 01: Definición de la Interacción
 
@@ -68,7 +67,8 @@ Se desarrolló la app con una estética **"Neo-Brutalista"** (colores ácido y a
 *   **Problema resuelto:** Inicialmente, la barra de energía no se actualizaba en tiempo real. Se resolvió optimizando el broadcast desde el servidor para que solo envíe cambios significativos, evitando saturar el ancho de banda del router.
 *   **Pruebas:** Se conectaron 5 dispositivos simultáneamente para verificar que el servidor de WebSockets gestionara correctamente la acumulación de energía.
 
-![Prototipo Inicial](../imagenes/primera%20idea.png)
+<img width="1920" height="1079" alt="app" src="https://github.com/user-attachments/assets/50305af3-f684-436f-aa08-8bf5ebe5e6bc" />
+
 
 ---
 
@@ -89,11 +89,14 @@ Al realizar pruebas con compañeros, descubrimos que el **Mega Evento** (cuando 
 
 ### 4. Visuales de la Obra (Las 4 Etapas)
 
-| Fase 0: Inerte | Fase 1: Deriva |
-| :---: | :---: |
-| ![Inerte](../imagenes/visuales%201.png) | ![Deriva](../imagenes/visuales%202.png) |
-| **Fase 2: Carga** | **Fase 3: Colapso** |
-| ![Carga](../imagenes/visuales%203.png) | ![Colapso](../imagenes/visuales%204.png) |
+<img width="1920" height="1079" alt="visuales 3" src="https://github.com/user-attachments/assets/bdbc44a8-12fb-4e8a-a7b6-d708e1928d1b" />
+
+<img width="1920" height="1079" alt="visuales 1" src="https://github.com/user-attachments/assets/4cb34440-6021-446f-9453-b8b0b3c20a7e" />
+
+<img width="1920" height="1079" alt="visuales 2" src="https://github.com/user-attachments/assets/d638b66c-8c45-4142-9ab4-606d41cc11be" />
+
+<img width="1920" height="1079" alt="visuales 4" src="https://github.com/user-attachments/assets/1514dbe4-4bad-40ee-85ca-723f9ee95053" />
+
 
 ---
 
