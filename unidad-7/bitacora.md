@@ -1,6 +1,6 @@
 # Unidad 7: Tormenta de Datos — Bitácora de Proyecto
 
-![Diseño de la App](file:///c:/Users/Nicolas/Desktop/Segundo%20proyecto%20interactivos%202/imagenes/app.png)
+![Diseño de la App](../imagenes/app.png)
 
 ## Actividad 01: Definición de la Interacción
 
@@ -68,7 +68,7 @@ Se desarrolló la app con una estética **"Neo-Brutalista"** (colores ácido y a
 *   **Problema resuelto:** Inicialmente, la barra de energía no se actualizaba en tiempo real. Se resolvió optimizando el broadcast desde el servidor para que solo envíe cambios significativos, evitando saturar el ancho de banda del router.
 *   **Pruebas:** Se conectaron 5 dispositivos simultáneamente para verificar que el servidor de WebSockets gestionara correctamente la acumulación de energía.
 
-![Prototipo Inicial](file:///c:/Users/Nicolas/Desktop/Segundo%20proyecto%20interactivos%202/imagenes/primera%20idea.png)
+![Prototipo Inicial](../imagenes/primera%20idea.png)
 
 ---
 
@@ -91,9 +91,9 @@ Al realizar pruebas con compañeros, descubrimos que el **Mega Evento** (cuando 
 
 | Fase 0: Inerte | Fase 1: Deriva |
 | :---: | :---: |
-| ![Inerte](file:///c:/Users/Nicolas/Desktop/Segundo%20proyecto%20interactivos%202/imagenes/visuales%201.png) | ![Deriva](file:///c:/Users/Nicolas/Desktop/Segundo%20proyecto%20interactivos%202/imagenes/visuales%202.png) |
+| ![Inerte](../imagenes/visuales%201.png) | ![Deriva](../imagenes/visuales%202.png) |
 | **Fase 2: Carga** | **Fase 3: Colapso** |
-| ![Carga](file:///c:/Users/Nicolas/Desktop/Segundo%20proyecto%20interactivos%202/imagenes/visuales%203.png) | ![Colapso](file:///c:/Users/Nicolas/Desktop/Segundo%20proyecto%20interactivos%202/imagenes/visuales%204.png) |
+| ![Carga](../imagenes/visuales%203.png) | ![Colapso](../imagenes/visuales%204.png) |
 
 ---
 
